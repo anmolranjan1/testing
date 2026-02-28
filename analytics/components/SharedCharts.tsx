@@ -128,12 +128,17 @@ export default function SharedCharts({
                   ) => [`${formatNumber(v)} tasks`, name ?? ""]}
                 />
                 <Legend
-                  verticalAlign="bottom"
+                  verticalAlign="top"
+                  align="center"
+                  wrapperStyle={{ marginBottom: "-10px", marginTop: "5px" }}
+                  iconSize={18}
                   formatter={(value: string) => (
                     <span
                       style={{
-                        fontSize: "0.82rem",
-                        color: "var(--bs-body-color)",
+                        fontSize: "0.92rem",
+                        color: "#0ea5e9",
+                        fontWeight: 600,
+                        letterSpacing: "0.01em",
                       }}
                     >
                       {value}
@@ -213,6 +218,7 @@ export default function SharedCharts({
         ) : avgQuizScores?.data?.length ? (
           <ChartCard
             title="Average Quiz Scores"
+            subtitle="You see data for your team only."
             description="Average score employees achieved on each policy's quiz — higher is better"
             isLoading={reloading["avgQuiz"]}
             controls={
@@ -254,20 +260,21 @@ export default function SharedCharts({
                 />
                 <YAxis
                   domain={[0, 100]}
-                  tick={{ fontSize: 11 }}
-                  tickFormatter={(v: number) => `${v}%`}
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(v: number) => `${v}`}
                   label={{
-                    value: "Avg Score (%)",
+                    value: "Avg Score",
                     angle: -90,
                     position: "insideLeft",
-                    offset: 15,
-                    fontSize: 11,
-                    fill: "#6c757d",
+                    offset: 20,
+                    fontSize: 12,
+                    fill: "#0ea5e9",
+                    fontWeight: 600,
                   }}
                 />
                 <Tooltip
                   formatter={(v: number | undefined) => [
-                    `${(v ?? 0).toFixed(1)}%`,
+                    `${(v ?? 0).toFixed(1)}`,
                     "Average Score",
                   ]}
                   labelFormatter={(label) => `Policy: ${label ?? "—"}`}

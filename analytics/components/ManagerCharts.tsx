@@ -106,7 +106,7 @@ export default function ManagerCharts({
         ) : teamHistogram?.bins?.length ? (
           <ChartCard
             title="Quiz Score Distribution"
-            subtitle={`${formatNumber(teamHistogram?.totalAssignments)} submissions`}
+            subtitle="You see data for your team only."
             description="Shows how your team's quiz scores are spread — most bars should lean right"
             isLoading={reloading["histogram"]}
             controls={renderPolicySelect(
@@ -137,8 +137,17 @@ export default function ManagerCharts({
                 />
                 <YAxis
                   allowDecimals={false}
-                  tick={{ fontSize: 11 }}
+                  tick={{ fontSize: 12 }}
                   tickFormatter={(v: number) => formatNumber(v)}
+                  label={{
+                    value: "Submissions",
+                    angle: -90,
+                    position: "insideLeft",
+                    offset: 20,
+                    fontSize: 12,
+                    fill: "#6610f2",
+                    fontWeight: 600,
+                  }}
                 />
                 <Tooltip
                   formatter={(v: number | undefined) => [
@@ -169,7 +178,7 @@ export default function ManagerCharts({
         ) : teamTopPerformers?.length ? (
           <ChartCard
             title="Top Performers"
-            description="Shows each team member's average quiz score. Progress bar = score as percentage."
+            description="Shows each team member's average quiz score."
             isLoading={reloading["topPerf"]}
             controls={renderPolicySelect(
               perfPolicy,
@@ -184,7 +193,6 @@ export default function ManagerCharts({
                     <th>#</th>
                     <th>Employee</th>
                     <th>Avg Score</th>
-                    <th>Progress</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -201,17 +209,7 @@ export default function ManagerCharts({
                         </div>
                       </td>
                       <td className="fw-semibold">
-                        {(p?.averageScore ?? 0).toFixed(1)}%
-                      </td>
-                      <td>
-                        <div className="perf-table__score-bar">
-                          <div
-                            className="perf-table__score-fill"
-                            style={{
-                              width: `${Math.min(p?.averageScore ?? 0, 100)}%`,
-                            }}
-                          />
-                        </div>
+                        {(p?.averageScore ?? 0).toFixed(1)}
                       </td>
                     </tr>
                   ))}
