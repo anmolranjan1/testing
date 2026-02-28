@@ -30,10 +30,8 @@ interface Props {
   monthlyRollout: MonthlyRollout[];
   checklistBubble: ChecklistItemsBubble[];
   errors: Record<string, string>;
-  reloading: Record<string, boolean>;
   reloadMostAssigned: (top: number, includeInactive: boolean) => Promise<void>;
   reloadRollout: (start?: Date, end?: Date) => Promise<void>;
-  onRetry: () => void;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -67,10 +65,8 @@ export default function AdminCharts({
   monthlyRollout,
   checklistBubble,
   errors,
-  reloading,
   reloadMostAssigned,
   reloadRollout,
-  onRetry,
 }: Props) {
   const [topCount, setTopCount] = useState(10);
   const [includeInactive, setIncludeInactive] = useState(false);
@@ -100,13 +96,11 @@ export default function AdminCharts({
           <ChartError
             title="Most Assigned Policies"
             message={errors["mostAssigned"]}
-            onRetry={onRetry}
           />
         ) : mostAssigned?.length ? (
           <ChartCard
             title="Most Assigned Policies"
             description="Policies assigned to the most employees — helps identify high-impact policies"
-            isLoading={reloading["mostAssigned"]}
             controls={
               <div className="d-flex align-items-center gap-2">
                 <select
@@ -114,7 +108,6 @@ export default function AdminCharts({
                   style={{ width: "auto" }}
                   value={topCount}
                   onChange={(e) => onTopChange(e.target.value)}
-                  disabled={reloading["mostAssigned"]}
                 >
                   <option value={5}>Top 5</option>
                   <option value={10}>Top 10</option>
@@ -126,7 +119,6 @@ export default function AdminCharts({
                     type="checkbox"
                     checked={includeInactive}
                     onChange={(e) => onInactiveToggle(e.target.checked)}
-                    disabled={reloading["mostAssigned"]}
                   />
                   <span className="small text-muted">Show inactive</span>
                 </label>
@@ -175,10 +167,7 @@ export default function AdminCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty
-            title="Most Assigned Policies"
-            hint="Assign policies to employees to populate this chart."
-          />
+          <ChartEmpty title="Most Assigned Policies" />
         )}
 
         {/* Policies by Category */}
@@ -186,7 +175,6 @@ export default function AdminCharts({
           <ChartError
             title="Policies by Category"
             message={errors["byCategory"]}
-            onRetry={onRetry}
           />
         ) : policiesByCategory?.data?.length ? (
           <ChartCard
@@ -235,10 +223,7 @@ export default function AdminCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty
-            title="Policies by Category"
-            hint="Categorize your policies to see this breakdown."
-          />
+          <ChartEmpty title="Policies by Category" />
         )}
       </div>
 
@@ -249,7 +234,6 @@ export default function AdminCharts({
           <ChartError
             title="Compliance by Department"
             message={errors["deptCompliance"]}
-            onRetry={onRetry}
           />
         ) : deptCompliance?.length ? (
           <ChartCard
@@ -306,10 +290,7 @@ export default function AdminCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty
-            title="Compliance by Department"
-            hint="Start tracking policy acceptances across departments."
-          />
+          <ChartEmpty title="Compliance by Department" />
         )}
 
         {/* Monthly Rollout — Area */}
@@ -317,20 +298,17 @@ export default function AdminCharts({
           <ChartError
             title="New Policies Over Time"
             message={errors["rollout"]}
-            onRetry={onRetry}
           />
         ) : monthlyRollout?.length ? (
           <ChartCard
             title="New Policies Over Time"
             description="How many new policies were created each month"
-            isLoading={reloading["rollout"]}
             controls={
               <select
                 className="form-select form-select-sm"
                 style={{ width: "auto" }}
                 value={rolloutPeriod}
                 onChange={(e) => onRolloutChange(e.target.value)}
-                disabled={reloading["rollout"]}
               >
                 <option value="all">All Time</option>
                 <option value="6m">Last 6 Months</option>
@@ -366,10 +344,7 @@ export default function AdminCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty
-            title="New Policies Over Time"
-            hint="Create policies to see the rollout timeline."
-          />
+          <ChartEmpty title="New Policies Over Time" />
         )}
       </div>
 
@@ -379,7 +354,6 @@ export default function AdminCharts({
           <ChartError
             title="Checklist Items per Policy"
             message={errors["bubble"]}
-            onRetry={onRetry}
           />
         ) : checklistBubble?.length ? (
           <ChartCard
@@ -428,10 +402,7 @@ export default function AdminCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty
-            title="Checklist Items per Policy"
-            hint="Add checklist items to policies for this view."
-          />
+          <ChartEmpty title="Checklist Items per Policy" />
         )}
       </div>
     </>

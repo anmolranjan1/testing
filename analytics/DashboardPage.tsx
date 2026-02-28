@@ -9,9 +9,8 @@ import {
   SectionTitle,
   SkeletonCards,
   SkeletonChart,
-  SkeletonTitle,
 } from "./components/ChartComponents";
-import { RefreshCw } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import "./dashboard.css";
 
 /**
@@ -29,13 +28,12 @@ export default function DashboardPage() {
 
   const data = useAnalyticsData(userId, role);
 
-  // Loading skeleton — mirrors the real layout so there's no jump
+  // Loading skeleton
   if (data.loading) {
     return (
       <div className="dashboard dashboard--loading">
         <div className="skeleton skeleton--header" />
         <SkeletonCards />
-        <SkeletonTitle />
         <div className="chart-grid chart-grid--two">
           <SkeletonChart />
           <SkeletonChart />
@@ -52,20 +50,12 @@ export default function DashboardPage() {
     return (
       <div className="dashboard">
         <div className="dashboard__fatal">
-          <RefreshCw size={32} className="dashboard__fatal-icon" />
+          <AlertTriangle size={32} className="dashboard__fatal-icon" />
           <h2 className="dashboard__fatal-title">Dashboard unavailable</h2>
           <p className="dashboard__fatal-text">
-            We couldn't load your dashboard data. This is usually a temporary
-            issue.
+            We couldn't load your dashboard data. Please try refreshing the
+            page.
           </p>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={data.refreshAll}
-          >
-            <RefreshCw size={14} className="me-1" />
-            Retry
-          </button>
         </div>
       </div>
     );
@@ -79,37 +69,26 @@ export default function DashboardPage() {
         summary={data.summary}
         errorCount={errorCount}
         userName={user?.name}
-        lastUpdated={data.lastUpdated}
-        onRefresh={data.refreshAll}
-        isRefreshing={data.loading}
       />
 
       {(isAdmin || isManager) && (
         <>
-          <SectionTitle
-            title="Overview"
-            description="High-level charts shared across your organization"
-          />
+          <SectionTitle title="Overview" />
           <SharedCharts
             auditChart={data.auditChart}
             avgQuizScores={data.avgQuizScores}
             policiesWithQuiz={data.policiesWithQuiz}
             complianceTrend={data.complianceTrend}
             errors={data.errors}
-            reloading={data.reloading}
             reloadTrend={data.reloadTrend}
             reloadQuizScores={data.reloadQuizScores}
-            onRetry={data.refreshAll}
           />
         </>
       )}
 
       {isAdmin && (
         <>
-          <SectionTitle
-            title="Admin Insights"
-            description="Organization-wide policy and department data visible only to admins"
-          />
+          <SectionTitle title="Admin Insights" />
           <AdminCharts
             mostAssigned={data.mostAssigned}
             policiesByCategory={data.policiesByCategory}
@@ -117,29 +96,22 @@ export default function DashboardPage() {
             monthlyRollout={data.monthlyRollout}
             checklistBubble={data.checklistBubble}
             errors={data.errors}
-            reloading={data.reloading}
             reloadMostAssigned={data.reloadMostAssigned}
             reloadRollout={data.reloadRollout}
-            onRetry={data.refreshAll}
           />
         </>
       )}
 
       {isManager && (
         <>
-          <SectionTitle
-            title="Team Performance"
-            description="Quiz scores, pending work, and top performers across your team"
-          />
+          <SectionTitle title="Team Performance" />
           <ManagerCharts
             teamHistogram={data.teamHistogram}
             teamPending={data.teamPending}
             teamTopPerformers={data.teamTopPerformers}
             errors={data.errors}
-            reloading={data.reloading}
             reloadHistogram={data.reloadHistogram}
             reloadTopPerformers={data.reloadTopPerformers}
-            onRetry={data.refreshAll}
           />
         </>
       )}

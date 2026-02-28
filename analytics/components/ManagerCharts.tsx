@@ -23,14 +23,12 @@ interface Props {
   teamPending: TeamPendingPolicy[];
   teamTopPerformers: TeamTopPerformer[];
   errors: Record<string, string>;
-  reloading: Record<string, boolean>;
   reloadHistogram: (binSize: number, policyId?: number) => Promise<void>;
   reloadTopPerformers: (
     top: number,
     minAttempts: number,
     policyId?: number,
   ) => Promise<void>;
-  onRetry: () => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────
@@ -40,10 +38,8 @@ export default function ManagerCharts({
   teamPending,
   teamTopPerformers,
   errors,
-  reloading,
   reloadHistogram,
   reloadTopPerformers,
-  onRetry,
 }: Props) {
   const [histPolicy, setHistPolicy] = useState<number | undefined>();
   const [perfPolicy, setPerfPolicy] = useState<number | undefined>();
@@ -70,7 +66,6 @@ export default function ManagerCharts({
   const renderPolicySelect = (
     value: number | undefined,
     onChange: (v: string) => void,
-    disabled?: boolean,
   ) =>
     policyOptions.length > 0 ? (
       <select
@@ -78,7 +73,6 @@ export default function ManagerCharts({
         style={{ width: "auto" }}
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
       >
         <option value="">All Policies</option>
         {policyOptions.map((p) => (
@@ -98,19 +92,13 @@ export default function ManagerCharts({
           <ChartError
             title="Quiz Score Distribution"
             message={errors["histogram"]}
-            onRetry={onRetry}
           />
         ) : teamHistogram?.bins?.length ? (
           <ChartCard
             title="Quiz Score Distribution"
             subtitle={`${formatNumber(teamHistogram?.totalAssignments)} submissions`}
             description="Shows how your team's quiz scores are spread — most bars should lean right"
-            isLoading={reloading["histogram"]}
-            controls={renderPolicySelect(
-              histPolicy,
-              onHistPolicyChange,
-              reloading["histogram"],
-            )}
+            controls={renderPolicySelect(histPolicy, onHistPolicyChange)}
           >
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
@@ -154,29 +142,17 @@ export default function ManagerCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty
-            title="Quiz Score Distribution"
-            hint="Team members need to take quizzes for this histogram."
-          />
+          <ChartEmpty title="Quiz Score Distribution" />
         )}
 
         {/* Top Performers — Table */}
         {errors["topPerf"] ? (
-          <ChartError
-            title="Top Performers"
-            message={errors["topPerf"]}
-            onRetry={onRetry}
-          />
+          <ChartError title="Top Performers" message={errors["topPerf"]} />
         ) : teamTopPerformers?.length ? (
           <ChartCard
             title="Top Performers"
             description="Team members with the highest average quiz scores"
-            isLoading={reloading["topPerf"]}
-            controls={renderPolicySelect(
-              perfPolicy,
-              onPerfPolicyChange,
-              reloading["topPerf"],
-            )}
+            controls={renderPolicySelect(perfPolicy, onPerfPolicyChange)}
           >
             <div style={{ maxHeight: 320, overflowY: "auto" }}>
               <table className="perf-table">
@@ -223,10 +199,7 @@ export default function ManagerCharts({
             </div>
           </ChartCard>
         ) : (
-          <ChartEmpty
-            title="Top Performers"
-            hint="Encourage your team to take quizzes to see top scorers."
-          />
+          <ChartEmpty title="Top Performers" />
         )}
       </div>
 
@@ -236,7 +209,6 @@ export default function ManagerCharts({
           <ChartError
             title="Pending Policy Acceptances"
             message={errors["pending"]}
-            onRetry={onRetry}
           />
         ) : teamPending?.length ? (
           <ChartCard
@@ -285,10 +257,7 @@ export default function ManagerCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty
-            title="Pending Policy Acceptances"
-            hint="No pending acceptances found — your team is up to date!"
-          />
+          <ChartEmpty title="Pending Policy Acceptances" />
         )}
       </div>
     </>

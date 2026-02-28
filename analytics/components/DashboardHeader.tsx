@@ -1,39 +1,24 @@
-import {
-  TrendingUp,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  RefreshCw,
-} from "lucide-react";
+import { TrendingUp, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import type { DashboardSummary } from "../../../shared/types/analytics";
 
 interface Props {
   summary: DashboardSummary;
   errorCount: number;
   userName?: string;
-  lastUpdated?: Date | null;
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
 }
 
-/** Human-friendly relative time without extra dependencies. */
-const timeAgo = (date: Date): string => {
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 10) return "just now";
-  if (seconds < 60) return `${seconds}s ago`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
+/** Returns a time-of-day greeting. */
+const getGreeting = (): string => {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
 };
 
 export default function DashboardHeader({
   summary,
   errorCount,
   userName,
-  lastUpdated,
-  onRefresh,
-  isRefreshing,
 }: Props) {
   const firstName = userName?.split(" ")[0] ?? "there";
 
@@ -73,46 +58,22 @@ export default function DashboardHeader({
       <div className="dashboard__header">
         <div>
           <h1 className="dashboard__title">
-            Hi {firstName}, here's your dashboard
+            {getGreeting()}, {firstName}
           </h1>
-          <p className="dashboard__subtitle">
-            A quick snapshot of compliance across your organization.
-            {errorCount > 0 && (
-              <span className="text-warning ms-2">
-                ({errorCount} chart{errorCount > 1 ? "s" : ""} couldn't load —
-                try refreshing)
+          {errorCount > 0 && (
+            <p className="dashboard__subtitle">
+              <span className="text-warning">
+                {errorCount} chart{errorCount > 1 ? "s" : ""} couldn't load —
+                try refreshing the page
               </span>
-            )}
-          </p>
-        </div>
-
-        <div className="dashboard__meta">
-          {lastUpdated && (
-            <span className="dashboard__updated">
-              Updated {timeAgo(lastUpdated)}
-            </span>
-          )}
-          {onRefresh && (
-            <button
-              type="button"
-              className="dashboard__refresh-btn"
-              onClick={onRefresh}
-              disabled={isRefreshing}
-              title="Refresh all data"
-            >
-              <RefreshCw
-                size={14}
-                className={isRefreshing ? "dashboard__refresh-spin" : ""}
-              />
-              {isRefreshing ? "Refreshing…" : "Refresh"}
-            </button>
+            </p>
           )}
         </div>
       </div>
 
       <div className="summary-grid">
         {cards.map((c) => (
-          <div key={c.label} className="summary-card">
+          <div key={c.label} className="summary-card" title={c.hint}>
             <div
               className={`summary-card__icon-wrap summary-card__icon-wrap--${c.color}`}
             >
@@ -120,7 +81,6 @@ export default function DashboardHeader({
             </div>
             <p className="summary-card__label">{c.label}</p>
             <p className="summary-card__value">{c.value}</p>
-            <p className="summary-card__hint">{c.hint}</p>
           </div>
         ))}
       </div>
