@@ -91,6 +91,12 @@ export default function ManagerCharts({
     <>
       {/* ── Row 1: Histogram + Top Performers ──────────────────── */}
       <div className="chart-grid chart-grid--two">
+        <div
+          className="dashboard__subtitle dashboard__subtitle--muted"
+          style={{ marginBottom: "0.5rem" }}
+        >
+          You see data for your team only.
+        </div>
         {/* Quiz Score Distribution */}
         {errors["histogram"] ? (
           <ChartError
@@ -163,7 +169,7 @@ export default function ManagerCharts({
         ) : teamTopPerformers?.length ? (
           <ChartCard
             title="Top Performers"
-            description="Team members with the highest average quiz scores"
+            description="Shows each team member's average quiz score. Progress bar = score as percentage."
             isLoading={reloading["topPerf"]}
             controls={renderPolicySelect(
               perfPolicy,
@@ -237,7 +243,7 @@ export default function ManagerCharts({
               <BarChart
                 data={teamPending}
                 layout="vertical"
-                margin={{ left: 10, bottom: 5 }}
+                margin={{ left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
                 <XAxis

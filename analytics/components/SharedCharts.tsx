@@ -91,7 +91,7 @@ export default function SharedCharts({
   return (
     <>
       {/* ── Row 1: Donut + Pie (side by side) ──────────────────── */}
-      <div className="chart-grid chart-grid--two">
+      <div className="chart-grid chart-grid--two" style={{ gap: "0.7rem" }}>
         {/* Audit Task Status — Donut */}
         {errors["audit"] ? (
           <ChartError title="Audit Tasks" message={errors["audit"]} />
@@ -100,7 +100,7 @@ export default function SharedCharts({
             title="Audit Tasks"
             subtitle={`${formatNumber(auditChart?.total)} total`}
           >
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie
                   data={(auditChart.slices ?? []).map((s) => ({
@@ -158,7 +158,7 @@ export default function SharedCharts({
             title="Quiz Availability"
             subtitle={`${formatNumber(policiesWithQuiz?.total)} policies`}
           >
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie
                   data={(policiesWithQuiz.slices ?? []).map((s) => ({
@@ -230,10 +230,10 @@ export default function SharedCharts({
               </label>
             }
           >
-            <ResponsiveContainer width="100%" height={320}>
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={avgQuizScores.data}
-                margin={{ left: 5, bottom: 10 }}
+                margin={{ left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
                 <XAxis
@@ -337,10 +337,10 @@ export default function SharedCharts({
               </div>
             }
           >
-            <ResponsiveContainer width="100%" height={320}>
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart
                 data={complianceTrend.buckets}
-                margin={{ left: 5, bottom: 15 }}
+                margin={{ left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
                 <XAxis

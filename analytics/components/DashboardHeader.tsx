@@ -72,10 +72,10 @@ export default function DashboardHeader({
               👋
             </span>
           </h1>
-          <p className="dashboard__subtitle">
-            <span className="dashboard__scope">
-              {role === "ADMIN" ? "Organization overview" : "Team overview"}
-            </span>
+          <p className="dashboard__subtitle dashboard__subtitle--muted">
+            {role === "MANAGER"
+              ? "You see data for your team only."
+              : "Organization-wide compliance summary."}
             {errorCount > 0 && (
               <span className="dashboard__error-badge">
                 {errorCount} chart{errorCount > 1 ? "s" : ""} couldn't load
@@ -99,7 +99,17 @@ export default function DashboardHeader({
             </div>
             <p className="summary-card__label">{c.label}</p>
             <p className="summary-card__value">{c.value}</p>
-            <p className="summary-card__hint">{c.hint}</p>
+            <p className="summary-card__hint">
+              {c.label === "Policy Compliance"
+                ? "Accepted policies (%)"
+                : c.label === "Pending Policies"
+                  ? "Awaiting acceptance"
+                  : c.label === "Audit Completion"
+                    ? "Audits completed (%)"
+                    : c.label === "Overdue Audits"
+                      ? "Audits past due"
+                      : c.hint}
+            </p>
           </div>
         ))}
       </div>

@@ -134,7 +134,7 @@ export default function AdminCharts({
               <BarChart
                 data={mostAssigned}
                 layout="vertical"
-                margin={{ left: 10, bottom: 5 }}
+                margin={{ left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
                 <XAxis
@@ -193,7 +193,7 @@ export default function AdminCharts({
               <BarChart
                 data={policiesByCategory.data}
                 layout="vertical"
-                margin={{ left: 10, bottom: 5 }}
+                margin={{ left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
                 <XAxis
@@ -255,7 +255,7 @@ export default function AdminCharts({
               <BarChart
                 data={deptCompliance}
                 layout="vertical"
-                margin={{ left: 10, bottom: 20 }}
+                margin={{ left: 0, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
                 <XAxis
@@ -383,7 +383,7 @@ export default function AdminCharts({
               <BarChart
                 data={checklistBubble}
                 layout="vertical"
-                margin={{ left: 10, bottom: 5 }}
+                margin={{ left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
                 <XAxis
