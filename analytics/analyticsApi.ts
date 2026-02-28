@@ -17,159 +17,139 @@ import type {
   TeamTopPerformer,
 } from "../../shared/types/analytics";
 
-// ==================== GENERAL ====================
+// ─── General ──────────────────────────────────────────────────────
 
-export const getDashboardSummary = async (
+export const fetchSummary = (userId: number): Promise<DashboardSummary> =>
+  apiClient
+    .get<DashboardSummary>(API_ENDPOINTS.ANALYTICS_SUMMARY, {
+      params: { userId },
+    })
+    .then((r) => r.data);
+
+// ─── Admin Only ───────────────────────────────────────────────────
+
+export const fetchMostAssigned = (
+  top = 10,
+  includeInactive = false,
+): Promise<MostAssignedPolicy[]> =>
+  apiClient
+    .get<MostAssignedPolicy[]>(API_ENDPOINTS.ANALYTICS_MOST_ASSIGNED_POLICIES, {
+      params: { top, includeInactive },
+    })
+    .then((r) => r.data);
+
+export const fetchPoliciesByCategory = (
   userId: number,
-): Promise<DashboardSummary> => {
-  const response = await apiClient.get<DashboardSummary>(
-    `${API_ENDPOINTS.ANALYTICS_SUMMARY}?userId=${userId}`,
-  );
-  return response.data;
-};
+): Promise<PoliciesByCategoryResponse> =>
+  apiClient
+    .get<PoliciesByCategoryResponse>(
+      API_ENDPOINTS.ANALYTICS_POLICIES_BY_CATEGORY,
+      { params: { userId } },
+    )
+    .then((r) => r.data);
 
-// ==================== ADMIN ONLY ====================
+export const fetchDeptCompliance = (): Promise<DepartmentComplianceBar[]> =>
+  apiClient
+    .get<
+      DepartmentComplianceBar[]
+    >(API_ENDPOINTS.ANALYTICS_COMPLIANCE_DEPARTMENT)
+    .then((r) => r.data);
 
-export const getMostAssignedPolicies = async (
-  top: number = 10,
-  includeInactive: boolean = false,
-): Promise<MostAssignedPolicy[]> => {
-  const response = await apiClient.get<MostAssignedPolicy[]>(
-    `${API_ENDPOINTS.ANALYTICS_MOST_ASSIGNED_POLICIES}?top=${top}&includeInactive=${includeInactive}`,
-  );
-  return response.data;
-};
-
-export const getPoliciesByCategory = async (
-  userId: number,
-): Promise<PoliciesByCategoryResponse> => {
-  const response = await apiClient.get<PoliciesByCategoryResponse>(
-    `${API_ENDPOINTS.ANALYTICS_POLICIES_BY_CATEGORY}?userId=${userId}`,
-  );
-  return response.data;
-};
-
-export const getDepartmentCompliance = async (): Promise<
-  DepartmentComplianceBar[]
-> => {
-  const response = await apiClient.get<DepartmentComplianceBar[]>(
-    API_ENDPOINTS.ANALYTICS_COMPLIANCE_DEPARTMENT,
-  );
-  return response.data;
-};
-
-export const getMonthlyRollout = async (
+export const fetchMonthlyRollout = (
   start?: Date,
   end?: Date,
 ): Promise<MonthlyRollout[]> => {
-  let url = API_ENDPOINTS.ANALYTICS_MONTHLY_ROLLOUT;
-  const params = new URLSearchParams();
-
-  if (start) {
-    params.append("start", toISOString(start));
-  }
-  if (end) {
-    params.append("end", toISOString(end));
-  }
-
-  if (params.toString()) {
-    url += `?${params.toString()}`;
-  }
-
-  const response = await apiClient.get<MonthlyRollout[]>(url);
-  return response.data;
+  const params: Record<string, string> = {};
+  if (start) params.start = toISOString(start);
+  if (end) params.end = toISOString(end);
+  return apiClient
+    .get<MonthlyRollout[]>(API_ENDPOINTS.ANALYTICS_MONTHLY_ROLLOUT, { params })
+    .then((r) => r.data);
 };
 
-export const getChecklistItemsBubble = async (): Promise<
-  ChecklistItemsBubble[]
-> => {
-  const response = await apiClient.get<ChecklistItemsBubble[]>(
-    API_ENDPOINTS.ANALYTICS_CHECKLIST_BUBBLE,
-  );
-  return response.data;
-};
+export const fetchChecklistBubble = (): Promise<ChecklistItemsBubble[]> =>
+  apiClient
+    .get<ChecklistItemsBubble[]>(API_ENDPOINTS.ANALYTICS_CHECKLIST_BUBBLE)
+    .then((r) => r.data);
 
-// ==================== ADMIN & MANAGER ====================
+// ─── Admin & Manager ─────────────────────────────────────────────
 
-export const getAverageQuizScores = async (
+export const fetchAvgQuizScores = (
   userId: number,
-  excludeZero: boolean = true,
-): Promise<AverageQuizScoreResponse> => {
-  const response = await apiClient.get<AverageQuizScoreResponse>(
-    `${API_ENDPOINTS.ANALYTICS_AVG_QUIZ_SCORE}?userId=${userId}&excludeZero=${excludeZero}`,
-  );
-  return response.data;
-};
+  excludeZero = true,
+): Promise<AverageQuizScoreResponse> =>
+  apiClient
+    .get<AverageQuizScoreResponse>(API_ENDPOINTS.ANALYTICS_AVG_QUIZ_SCORE, {
+      params: { userId, excludeZero },
+    })
+    .then((r) => r.data);
 
-export const getAuditTaskStatus = async (
+export const fetchAuditStatus = (
   userId: number,
-): Promise<AuditTaskStatusChart> => {
-  const response = await apiClient.get<AuditTaskStatusChart>(
-    `${API_ENDPOINTS.ANALYTICS_AUDIT_STATUS}?userId=${userId}`,
-  );
-  return response.data;
-};
+): Promise<AuditTaskStatusChart> =>
+  apiClient
+    .get<AuditTaskStatusChart>(API_ENDPOINTS.ANALYTICS_AUDIT_STATUS, {
+      params: { userId },
+    })
+    .then((r) => r.data);
 
-export const getPoliciesWithQuiz = async (
+export const fetchPoliciesWithQuiz = (
   userId: number,
-): Promise<PoliciesWithQuizPieResponse> => {
-  const response = await apiClient.get<PoliciesWithQuizPieResponse>(
-    `${API_ENDPOINTS.ANALYTICS_POLICIES_WITH_QUIZ}?userId=${userId}`,
-  );
-  return response.data;
-};
+): Promise<PoliciesWithQuizPieResponse> =>
+  apiClient
+    .get<PoliciesWithQuizPieResponse>(
+      API_ENDPOINTS.ANALYTICS_POLICIES_WITH_QUIZ,
+      { params: { userId } },
+    )
+    .then((r) => r.data);
 
-export const getComplianceTrend = async (
+export const fetchComplianceTrend = (
   userId: number,
-  mode: string = "month",
+  mode = "month",
   year?: number,
-): Promise<ComplianceTrendResponse> => {
-  let url = `${API_ENDPOINTS.ANALYTICS_COMPLIANCE_TREND}?userId=${userId}&mode=${mode}`;
-  if (year) {
-    url += `&year=${year}`;
-  }
+): Promise<ComplianceTrendResponse> =>
+  apiClient
+    .get<ComplianceTrendResponse>(API_ENDPOINTS.ANALYTICS_COMPLIANCE_TREND, {
+      params: { userId, mode, ...(year ? { year } : {}) },
+    })
+    .then((r) => r.data);
 
-  const response = await apiClient.get<ComplianceTrendResponse>(url);
-  return response.data;
-};
+// ─── Manager Only ────────────────────────────────────────────────
 
-// ==================== MANAGER ONLY ====================
-
-export const getTeamQuizHistogram = async (
+export const fetchTeamHistogram = (
   userId: number,
-  binSize: number = 10,
+  binSize = 10,
   policyId?: number,
-): Promise<TeamQuizHistogram> => {
-  let url = `${API_ENDPOINTS.ANALYTICS_TEAM_QUIZ_HISTOGRAM}?userId=${userId}&binSize=${binSize}`;
-  if (policyId) {
-    url += `&policyId=${policyId}`;
-  }
+): Promise<TeamQuizHistogram> =>
+  apiClient
+    .get<TeamQuizHistogram>(API_ENDPOINTS.ANALYTICS_TEAM_QUIZ_HISTOGRAM, {
+      params: { userId, binSize, ...(policyId ? { policyId } : {}) },
+    })
+    .then((r) => r.data);
 
-  const response = await apiClient.get<TeamQuizHistogram>(url);
-  return response.data;
-};
-
-export const getTeamPendingPolicies = async (
+export const fetchTeamPending = (
   userId: number,
-  top: number = 10,
-): Promise<TeamPendingPolicy[]> => {
-  const response = await apiClient.get<TeamPendingPolicy[]>(
-    `${API_ENDPOINTS.ANALYTICS_TEAM_PENDING_POLICIES}?userId=${userId}&top=${top}`,
-  );
-  return response.data;
-};
+  top = 10,
+): Promise<TeamPendingPolicy[]> =>
+  apiClient
+    .get<TeamPendingPolicy[]>(API_ENDPOINTS.ANALYTICS_TEAM_PENDING_POLICIES, {
+      params: { userId, top },
+    })
+    .then((r) => r.data);
 
-export const getTeamTopPerformers = async (
+export const fetchTeamTopPerformers = (
   userId: number,
-  top: number = 10,
-  minAttempts: number = 1,
+  top = 10,
+  minAttempts = 1,
   policyId?: number,
-): Promise<TeamTopPerformer[]> => {
-  let url = `${API_ENDPOINTS.ANALYTICS_TEAM_TOP_PERFORMERS}?userId=${userId}&top=${top}&minAttempts=${minAttempts}`;
-  if (policyId) {
-    url += `&policyId=${policyId}`;
-  }
-
-  const response = await apiClient.get<TeamTopPerformer[]>(url);
-  return response.data;
-};
+): Promise<TeamTopPerformer[]> =>
+  apiClient
+    .get<TeamTopPerformer[]>(API_ENDPOINTS.ANALYTICS_TEAM_TOP_PERFORMERS, {
+      params: {
+        userId,
+        top,
+        minAttempts,
+        ...(policyId ? { policyId } : {}),
+      },
+    })
+    .then((r) => r.data);

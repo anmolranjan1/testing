@@ -1,79 +1,84 @@
 import type { ReactNode } from "react";
 import { AlertTriangle, BarChart3 } from "lucide-react";
 
-/** Shown when a chart's API call fails — other charts continue working */
-export function ErrorCard({ title, error }: { title: string; error: string }) {
-  return (
-    <div className="card border-0 shadow-sm h-100">
-      <div className="card-body d-flex flex-column justify-content-center align-items-center text-center py-5">
-        <AlertTriangle className="text-warning mb-3" size={32} />
-        <h6 className="card-title mb-2">{title}</h6>
-        <p className="text-muted small mb-0">Failed to load: {error}</p>
-      </div>
-    </div>
-  );
-}
-
-/** Shown when the API returns empty / no data for a chart */
-export function EmptyCard({ title }: { title: string }) {
-  return (
-    <div className="card border-0 shadow-sm h-100">
-      <div className="card-body d-flex flex-column justify-content-center align-items-center text-center py-5">
-        <BarChart3 className="text-muted mb-3" size={32} />
-        <h6 className="card-title mb-2">{title}</h6>
-        <p className="text-muted small mb-0">No data available</p>
-      </div>
-    </div>
-  );
-}
-
-/** Wrapper card for each chart — title + optional filter controls in header */
-export function ChartCard({
+// ─── Error State ──────────────────────────────────────────────────
+/** Shown when a chart API fails — isolated so other charts still render. */
+export function ChartError({
   title,
-  children,
-  controls,
+  message,
 }: {
   title: string;
-  children: ReactNode;
-  controls?: ReactNode;
+  message: string;
 }) {
   return (
-    <div className="card border-0 shadow-sm h-100">
-      <div className="card-body">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h6 className="card-title mb-0">{title}</h6>
-          {controls && <div className="d-flex gap-2">{controls}</div>}
-        </div>
-        {children}
+    <div className="chart-card">
+      <div className="chart-error">
+        <AlertTriangle size={28} className="chart-error__icon" />
+        <p className="chart-error__title">{title}</p>
+        <p className="chart-error__msg">{message}</p>
       </div>
     </div>
   );
 }
 
-/** Section divider between chart groups */
-export function SectionTitle({ title }: { title: string }) {
+// ─── Empty State ──────────────────────────────────────────────────
+/** Shown when the API returns no data for a chart. */
+export function ChartEmpty({ title }: { title: string }) {
   return (
-    <div className="mt-5 mb-3">
-      <h5 className="fw-semibold text-muted text-uppercase small letter-spacing-2">
-        {title}
-      </h5>
-      <hr className="mt-1 mb-0" />
+    <div className="chart-card">
+      <div className="chart-empty">
+        <BarChart3 size={32} className="chart-empty__icon" />
+        <p className="chart-empty__text">No data for "{title}"</p>
+      </div>
     </div>
   );
 }
 
-/** Bootstrap grid row for chart layout */
-export function ChartRow({ children }: { children: ReactNode }) {
-  return <div className="row g-4 mt-0">{children}</div>;
+// ─── Chart Card Wrapper ───────────────────────────────────────────
+/** Card shell for each chart — title + optional filter controls. */
+export function ChartCard({
+  title,
+  subtitle,
+  controls,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  controls?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="chart-card">
+      <div className="chart-card__header">
+        <div>
+          <h3 className="chart-card__title">{title}</h3>
+          {subtitle && <p className="chart-card__subtitle">{subtitle}</p>}
+        </div>
+        {controls && (
+          <div className="chart-card__controls chart-filter">{controls}</div>
+        )}
+      </div>
+      <div className="chart-card__body">{children}</div>
+    </div>
+  );
 }
 
-/** Column wrapper — defaults to full-width; pass "col-lg-6" for half */
-export function ChartColumn({
-  children,
-  size = "col-12",
-}: {
-  children: ReactNode;
-  size?: string;
-}) {
-  return <div className={size}>{children}</div>;
+// ─── Section Title ────────────────────────────────────────────────
+export function SectionTitle({ title }: { title: string }) {
+  return <h2 className="section-title">{title}</h2>;
+}
+
+// ─── Loading Skeleton ─────────────────────────────────────────────
+export function SkeletonCards({ count = 4 }: { count?: number }) {
+  return (
+    <div className="summary-grid">
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className="skeleton skeleton--card" />
+      ))}
+    </div>
+  );
+}
+
+export function SkeletonChart() {
+  return <div className="skeleton skeleton--chart" />;
 }
