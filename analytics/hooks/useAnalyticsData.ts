@@ -56,6 +56,12 @@ export interface AnalyticsState {
 
   // Per-chart errors (key = chart name)
   errors: Record<string, string>;
+
+  // Per-chart reloading flags (key = chart name)
+  reloading: Record<string, boolean>;
+
+  // When the dashboard last completed loading
+  lastUpdated: Date | null;
 }
 
 type Role = "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER";
@@ -76,6 +82,8 @@ const INITIAL: AnalyticsState = {
   teamPending: [],
   teamTopPerformers: [],
   errors: {},
+  reloading: {},
+  lastUpdated: null,
 };
 
 /**
@@ -120,10 +128,20 @@ export function useAnalyticsData(userId: number, role: Role) {
     [],
   );
 
+  // Helper: mark a chart as reloading (used by filter changes)
+  const setReloading = useCallback(
+    (key: string, value: boolean) =>
+      setState((prev) => ({
+        ...prev,
+        reloading: { ...prev.reloading, [key]: value },
+      })),
+    [],
+  );
+
   // ─── Initial Load ─────────────────────────────────────────────
   const loadAll = useCallback(async () => {
     if (!userId) return;
-    patch({ loading: true, errors: {} });
+    patch({ loading: true, errors: {}, reloading: {} });
 
     // Phase 1: Summary
     const summary = await safe("summary", () => fetchSummary(userId));
@@ -180,7 +198,7 @@ export function useAnalyticsData(userId: number, role: Role) {
       });
     }
 
-    patch({ loading: false });
+    patch({ loading: false, lastUpdated: new Date() });
   }, [userId, role, safe, patch]);
 
   useEffect(() => {
@@ -191,60 +209,72 @@ export function useAnalyticsData(userId: number, role: Role) {
 
   const reloadTrend = useCallback(
     async (mode: string, year?: number) => {
+      setReloading("trend", true);
       const d = await safe("trend", () =>
         fetchComplianceTrend(userId, mode, year),
       );
       patch({ complianceTrend: d });
+      setReloading("trend", false);
     },
-    [userId, safe, patch],
+    [userId, safe, patch, setReloading],
   );
 
   const reloadQuizScores = useCallback(
     async (excludeZero: boolean) => {
+      setReloading("avgQuiz", true);
       const d = await safe("avgQuiz", () =>
         fetchAvgQuizScores(userId, excludeZero),
       );
       patch({ avgQuizScores: d });
+      setReloading("avgQuiz", false);
     },
-    [userId, safe, patch],
+    [userId, safe, patch, setReloading],
   );
 
   const reloadMostAssigned = useCallback(
     async (top: number, includeInactive: boolean) => {
+      setReloading("mostAssigned", true);
       const d = await safe("mostAssigned", () =>
         fetchMostAssigned(top, includeInactive),
       );
       patch({ mostAssigned: d ?? [] });
+      setReloading("mostAssigned", false);
     },
-    [safe, patch],
+    [safe, patch, setReloading],
   );
 
   const reloadRollout = useCallback(
     async (start?: Date, end?: Date) => {
+      setReloading("rollout", true);
       const d = await safe("rollout", () => fetchMonthlyRollout(start, end));
       patch({ monthlyRollout: d ?? [] });
+      setReloading("rollout", false);
     },
-    [safe, patch],
+    [safe, patch, setReloading],
   );
 
   const reloadHistogram = useCallback(
     async (binSize: number, policyId?: number) => {
+      setReloading("histogram", true);
       const d = await safe("histogram", () =>
         fetchTeamHistogram(userId, binSize, policyId),
       );
       patch({ teamHistogram: d });
+      setReloading("histogram", false);
     },
-    [userId, safe, patch],
+    [userId, safe, patch, setReloading],
   );
 
   const reloadTopPerformers = useCallback(
     async (top: number, minAttempts: number, policyId?: number) => {
+      setReloading("topPerf", true);
       const d = await safe("topPerf", () =>
         fetchTeamTopPerformers(userId, top, minAttempts, policyId),
       );
       patch({ teamTopPerformers: d ?? [] });
+      setReloading("topPerf", false);
     },
-    [userId, safe, patch],
+    [userId, safe, patch, setReloading],
   );
 
   return {
@@ -255,5 +285,6 @@ export function useAnalyticsData(userId: number, role: Role) {
     reloadRollout,
     reloadHistogram,
     reloadTopPerformers,
+    refreshAll: loadAll,
   };
 }

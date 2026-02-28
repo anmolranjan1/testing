@@ -54,8 +54,10 @@ interface Props {
   policiesWithQuiz: PoliciesWithQuizPieResponse | null;
   complianceTrend: ComplianceTrendResponse | null;
   errors: Record<string, string>;
+  reloading: Record<string, boolean>;
   reloadTrend: (mode: string, year?: number) => Promise<void>;
   reloadQuizScores: (excludeZero: boolean) => Promise<void>;
+  onRetry: () => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────
@@ -66,8 +68,10 @@ export default function SharedCharts({
   policiesWithQuiz,
   complianceTrend,
   errors,
+  reloading,
   reloadTrend,
   reloadQuizScores,
+  onRetry,
 }: Props) {
   const [trendMode, setTrendMode] = useState<"month" | "year">("month");
   const [trendYear, setTrendYear] = useState(new Date().getFullYear());
@@ -92,7 +96,11 @@ export default function SharedCharts({
       <div className="chart-grid chart-grid--two">
         {/* Audit Task Status — Donut */}
         {errors["audit"] ? (
-          <ChartError title="Audit Tasks" message={errors["audit"]} />
+          <ChartError
+            title="Audit Tasks"
+            message={errors["audit"]}
+            onRetry={onRetry}
+          />
         ) : auditChart?.slices?.length ? (
           <ChartCard
             title="Audit Tasks"
@@ -143,12 +151,19 @@ export default function SharedCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Audit Tasks" />
+          <ChartEmpty
+            title="Audit Tasks"
+            hint="Create audit tasks to see their status here."
+          />
         )}
 
         {/* Quiz Coverage — Pie */}
         {errors["withQuiz"] ? (
-          <ChartError title="Quiz Coverage" message={errors["withQuiz"]} />
+          <ChartError
+            title="Quiz Coverage"
+            message={errors["withQuiz"]}
+            onRetry={onRetry}
+          />
         ) : policiesWithQuiz?.slices?.length ? (
           <ChartCard
             title="Quiz Coverage"
@@ -196,18 +211,26 @@ export default function SharedCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Quiz Coverage" />
+          <ChartEmpty
+            title="Quiz Coverage"
+            hint="Attach quizzes to policies to see coverage."
+          />
         )}
       </div>
 
       {/* ── Row 2: Average Quiz Scores (full width) ────────────── */}
       <div className="chart-grid chart-grid--one">
         {errors["avgQuiz"] ? (
-          <ChartError title="Average Quiz Scores" message={errors["avgQuiz"]} />
+          <ChartError
+            title="Average Quiz Scores"
+            message={errors["avgQuiz"]}
+            onRetry={onRetry}
+          />
         ) : avgQuizScores?.data?.length ? (
           <ChartCard
             title="Average Quiz Scores"
             description="Average score employees achieved on each policy's quiz — higher is better"
+            isLoading={reloading["avgQuiz"]}
             controls={
               <label className="d-flex align-items-center gap-2 mb-0">
                 <input
@@ -215,6 +238,7 @@ export default function SharedCharts({
                   className="form-check-input"
                   checked={excludeZero}
                   onChange={(e) => onExcludeZero(e.target.checked)}
+                  disabled={reloading["avgQuiz"]}
                 />
                 <span className="small text-muted text-nowrap">
                   Hide policies with no attempts
@@ -256,19 +280,27 @@ export default function SharedCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Average Quiz Scores" />
+          <ChartEmpty
+            title="Average Quiz Scores"
+            hint="Employees need to complete quizzes for scores to appear."
+          />
         )}
       </div>
 
       {/* ── Row 3: Compliance Trend (full width) ───────────────── */}
       <div className="chart-grid chart-grid--one">
         {errors["trend"] ? (
-          <ChartError title="Compliance Trend" message={errors["trend"]} />
+          <ChartError
+            title="Compliance Trend"
+            message={errors["trend"]}
+            onRetry={onRetry}
+          />
         ) : complianceTrend?.buckets?.length ? (
           <ChartCard
             title="Compliance Trend"
             subtitle={`${formatNumber(complianceTrend?.total)} total accepted`}
             description="How many policy acceptances happened over time — helps spot trends"
+            isLoading={reloading["trend"]}
             controls={
               <div className="d-flex align-items-center gap-2">
                 <div className="btn-group btn-group-sm">
@@ -276,6 +308,7 @@ export default function SharedCharts({
                     type="button"
                     className={`btn ${trendMode === "month" ? "btn-primary" : "btn-outline-primary"}`}
                     onClick={() => onTrendMode("month")}
+                    disabled={reloading["trend"]}
                   >
                     Daily
                   </button>
@@ -283,6 +316,7 @@ export default function SharedCharts({
                     type="button"
                     className={`btn ${trendMode === "year" ? "btn-primary" : "btn-outline-primary"}`}
                     onClick={() => onTrendMode("year")}
+                    disabled={reloading["trend"]}
                   >
                     Monthly
                   </button>
@@ -293,6 +327,7 @@ export default function SharedCharts({
                     style={{ width: "auto" }}
                     value={trendYear}
                     onChange={(e) => onTrendYear(Number(e.target.value))}
+                    disabled={reloading["trend"]}
                   >
                     {yearOptions().map((y) => (
                       <option key={y} value={y}>
@@ -332,7 +367,10 @@ export default function SharedCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Compliance Trend" />
+          <ChartEmpty
+            title="Compliance Trend"
+            hint="Policy acceptances will be charted over time."
+          />
         )}
       </div>
     </>
