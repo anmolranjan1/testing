@@ -23,6 +23,8 @@ import type {
   ComplianceTrendResponse,
 } from "../../../shared/types/analytics";
 
+// ─── Constants ────────────────────────────────────────────────────
+
 const STATUS_COLORS: Record<string, string> = {
   PENDING: "#ffc107",
   INPROGRESS: "#0d6efd",
@@ -40,6 +42,12 @@ const yearOptions = (): number[] => {
   return Array.from({ length: 5 }, (_, i) => y - i);
 };
 
+// Shorten long policy names for X-axis readability
+const truncate = (text: string, max = 18) =>
+  text?.length > max ? text.slice(0, max) + "…" : (text ?? "");
+
+// ─── Props ────────────────────────────────────────────────────────
+
 interface Props {
   auditChart: AuditTaskStatusChart | null;
   avgQuizScores: AverageQuizScoreResponse | null;
@@ -49,6 +57,8 @@ interface Props {
   reloadTrend: (mode: string, year?: number) => Promise<void>;
   reloadQuizScores: (excludeZero: boolean) => Promise<void>;
 }
+
+// ─── Component ────────────────────────────────────────────────────
 
 export default function SharedCharts({
   auditChart,
@@ -78,15 +88,16 @@ export default function SharedCharts({
 
   return (
     <>
-      {/* Row 1: Audit Tasks + Quiz Availability */}
+      {/* ── Row 1: Donut + Pie (side by side) ──────────────────── */}
       <div className="chart-grid chart-grid--two">
+        {/* Audit Task Status — Donut */}
         {errors["audit"] ? (
           <ChartError title="Audit Tasks" message={errors["audit"]} />
         ) : auditChart?.slices?.length ? (
           <ChartCard
             title="Audit Tasks"
-            description="How tasks are split across statuses"
-            subtitle={`${formatNumber(auditChart?.total)} total tasks`}
+            subtitle={`${formatNumber(auditChart?.total)} total`}
+            description="Shows how many audit tasks are pending, in progress, or completed"
           >
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
@@ -101,9 +112,6 @@ export default function SharedCharts({
                   outerRadius={90}
                   paddingAngle={3}
                   dataKey="value"
-                  label={({ percent }) =>
-                    `${((percent ?? 0) * 100).toFixed(0)}%`
-                  }
                 >
                   {(auditChart.slices ?? []).map((s, i) => (
                     <Cell
@@ -113,12 +121,24 @@ export default function SharedCharts({
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(v: number | undefined) => [
-                    formatNumber(v),
-                    "Tasks",
-                  ]}
+                  formatter={(
+                    v: number | undefined,
+                    name: string | undefined,
+                  ) => [`${formatNumber(v)} tasks`, name ?? ""]}
                 />
-                <Legend />
+                <Legend
+                  verticalAlign="bottom"
+                  formatter={(value: string) => (
+                    <span
+                      style={{
+                        fontSize: "0.82rem",
+                        color: "var(--bs-body-color)",
+                      }}
+                    >
+                      {value}
+                    </span>
+                  )}
+                />
               </PieChart>
             </ResponsiveContainer>
           </ChartCard>
@@ -126,13 +146,14 @@ export default function SharedCharts({
           <ChartEmpty title="Audit Tasks" />
         )}
 
+        {/* Quiz Coverage — Pie */}
         {errors["withQuiz"] ? (
-          <ChartError title="Quiz Availability" message={errors["withQuiz"]} />
+          <ChartError title="Quiz Coverage" message={errors["withQuiz"]} />
         ) : policiesWithQuiz?.slices?.length ? (
           <ChartCard
-            title="Quiz Availability"
-            description="Policies that include a quiz for employees"
+            title="Quiz Coverage"
             subtitle={`${formatNumber(policiesWithQuiz?.total)} policies`}
+            description="How many policies have a quiz attached vs. those that don't"
           >
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
@@ -147,37 +168,46 @@ export default function SharedCharts({
                   outerRadius={90}
                   paddingAngle={3}
                   dataKey="value"
-                  label={({ percent }) =>
-                    `${((percent ?? 0) * 100).toFixed(0)}%`
-                  }
                 >
                   {QUIZ_COLORS.map((c, i) => (
                     <Cell key={i} fill={c} />
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(v: number | undefined) => [
-                    formatNumber(v),
-                    "Policies",
-                  ]}
+                  formatter={(
+                    v: number | undefined,
+                    name: string | undefined,
+                  ) => [`${formatNumber(v)} policies`, name ?? ""]}
                 />
-                <Legend />
+                <Legend
+                  verticalAlign="bottom"
+                  formatter={(value: string) => (
+                    <span
+                      style={{
+                        fontSize: "0.82rem",
+                        color: "var(--bs-body-color)",
+                      }}
+                    >
+                      {value}
+                    </span>
+                  )}
+                />
               </PieChart>
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Quiz Availability" />
+          <ChartEmpty title="Quiz Coverage" />
         )}
       </div>
 
-      {/* Row 2: Quiz Performance */}
+      {/* ── Row 2: Average Quiz Scores (full width) ────────────── */}
       <div className="chart-grid chart-grid--one">
         {errors["avgQuiz"] ? (
-          <ChartError title="Quiz Performance" message={errors["avgQuiz"]} />
+          <ChartError title="Average Quiz Scores" message={errors["avgQuiz"]} />
         ) : avgQuizScores?.data?.length ? (
           <ChartCard
-            title="Quiz Performance"
-            description="Average quiz score for each policy"
+            title="Average Quiz Scores"
+            description="Average score employees achieved on each policy's quiz — higher is better"
             controls={
               <label className="d-flex align-items-center gap-2 mb-0">
                 <input
@@ -187,67 +217,58 @@ export default function SharedCharts({
                   onChange={(e) => onExcludeZero(e.target.checked)}
                 />
                 <span className="small text-muted text-nowrap">
-                  Hide untested
+                  Hide policies with no attempts
                 </span>
               </label>
             }
           >
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={avgQuizScores.data}>
+              <BarChart data={avgQuizScores.data} margin={{ bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
                 <XAxis
                   dataKey="policyTitle"
-                  angle={-15}
+                  angle={-20}
                   textAnchor="end"
-                  height={60}
+                  height={70}
                   tick={{ fontSize: 11 }}
                   interval={0}
+                  tickFormatter={(v: string) => truncate(v)}
                 />
                 <YAxis
                   domain={[0, 100]}
-                  label={{
-                    value: "Score (%)",
-                    angle: -90,
-                    position: "insideLeft",
-                    offset: 10,
-                    fontSize: 11,
-                    fill: "#6c757d",
-                  }}
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(v: number) => `${v}%`}
                 />
                 <Tooltip
                   formatter={(v: number | undefined) => [
-                    `${v?.toFixed(1) ?? 0}%`,
-                    "Avg Score",
+                    `${(v ?? 0).toFixed(1)}%`,
+                    "Average Score",
                   ]}
-                  labelFormatter={(l) => `${l ?? "—"}`}
+                  labelFormatter={(label) => `Policy: ${label ?? "—"}`}
                 />
                 <Bar
                   dataKey="averageScore"
                   fill="#0ea5e9"
                   radius={[4, 4, 0, 0]}
-                  name="Avg Score"
+                  name="Average Score"
                 />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Quiz Performance" />
+          <ChartEmpty title="Average Quiz Scores" />
         )}
       </div>
 
-      {/* Row 3: Acceptance Trend */}
+      {/* ── Row 3: Compliance Trend (full width) ───────────────── */}
       <div className="chart-grid chart-grid--one">
         {errors["trend"] ? (
-          <ChartError title="Acceptance Trend" message={errors["trend"]} />
+          <ChartError title="Compliance Trend" message={errors["trend"]} />
         ) : complianceTrend?.buckets?.length ? (
           <ChartCard
-            title="Acceptance Trend"
-            description="How quickly policies are being accepted"
-            subtitle={
-              complianceTrend?.total != null
-                ? `${formatNumber(complianceTrend.total)} accepted so far`
-                : undefined
-            }
+            title="Compliance Trend"
+            subtitle={`${formatNumber(complianceTrend?.total)} total accepted`}
+            description="How many policy acceptances happened over time — helps spot trends"
             controls={
               <div className="d-flex align-items-center gap-2">
                 <div className="btn-group btn-group-sm">
@@ -256,14 +277,14 @@ export default function SharedCharts({
                     className={`btn ${trendMode === "month" ? "btn-primary" : "btn-outline-primary"}`}
                     onClick={() => onTrendMode("month")}
                   >
-                    Monthly
+                    Daily
                   </button>
                   <button
                     type="button"
                     className={`btn ${trendMode === "year" ? "btn-primary" : "btn-outline-primary"}`}
                     onClick={() => onTrendMode("year")}
                   >
-                    Yearly
+                    Monthly
                   </button>
                 </div>
                 {trendMode === "year" && (
@@ -289,19 +310,13 @@ export default function SharedCharts({
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                 <YAxis
                   allowDecimals={false}
-                  label={{
-                    value: "Accepted",
-                    angle: -90,
-                    position: "insideLeft",
-                    offset: 10,
-                    fontSize: 11,
-                    fill: "#6c757d",
-                  }}
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(v: number) => formatNumber(v)}
                 />
                 <Tooltip
                   formatter={(v: number | undefined) => [
                     formatNumber(v),
-                    "Accepted",
+                    "Policies Accepted",
                   ]}
                 />
                 <Line
@@ -311,13 +326,13 @@ export default function SharedCharts({
                   strokeWidth={2}
                   dot={{ r: 4, fill: "#4f46e5" }}
                   activeDot={{ r: 6 }}
-                  name="Accepted"
+                  name="Policies Accepted"
                 />
               </LineChart>
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Acceptance Trend" />
+          <ChartEmpty title="Compliance Trend" />
         )}
       </div>
     </>

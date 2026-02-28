@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { AlertTriangle, BarChart3 } from "lucide-react";
+import { AlertTriangle, BarChart3, Info } from "lucide-react";
 
-/** Shown when a chart API fails. */
+// ─── Error State ──────────────────────────────────────────────────
 export function ChartError({
   title,
   message,
@@ -13,15 +13,15 @@ export function ChartError({
     <div className="chart-card">
       <div className="chart-error">
         <AlertTriangle size={28} className="chart-error__icon" />
-        <p className="chart-error__title">Couldn't load {title}</p>
+        <p className="chart-error__title">Could not load {title}</p>
         <p className="chart-error__msg">{message}</p>
-        <p className="chart-error__hint">Try refreshing the page</p>
+        <p className="chart-error__hint">Try refreshing the page.</p>
       </div>
     </div>
   );
 }
 
-/** Shown when the API returns no data. */
+// ─── Empty State ──────────────────────────────────────────────────
 export function ChartEmpty({ title }: { title: string }) {
   return (
     <div className="chart-card">
@@ -29,24 +29,24 @@ export function ChartEmpty({ title }: { title: string }) {
         <BarChart3 size={32} className="chart-empty__icon" />
         <p className="chart-empty__title">No data yet</p>
         <p className="chart-empty__text">
-          {title} will appear here once data is available
+          {title} will appear here once there is enough data.
         </p>
       </div>
     </div>
   );
 }
 
-/** Card wrapper for each chart — title + description + optional controls. */
+// ─── Chart Card Wrapper ───────────────────────────────────────────
 export function ChartCard({
   title,
-  description,
   subtitle,
+  description,
   controls,
   children,
 }: {
   title: string;
-  description?: string;
   subtitle?: string;
+  description?: string;
   controls?: ReactNode;
   children: ReactNode;
 }) {
@@ -55,8 +55,13 @@ export function ChartCard({
       <div className="chart-card__header">
         <div>
           <h3 className="chart-card__title">{title}</h3>
-          {description && <p className="chart-card__desc">{description}</p>}
           {subtitle && <p className="chart-card__subtitle">{subtitle}</p>}
+          {description && (
+            <p className="chart-card__desc">
+              <Info size={13} className="chart-card__desc-icon" />
+              {description}
+            </p>
+          )}
         </div>
         {controls && (
           <div className="chart-card__controls chart-filter">{controls}</div>
@@ -67,7 +72,7 @@ export function ChartCard({
   );
 }
 
-/** Section divider with optional description. */
+// ─── Section Title ────────────────────────────────────────────────
 export function SectionTitle({
   title,
   description,
@@ -78,12 +83,12 @@ export function SectionTitle({
   return (
     <div className="section-header">
       <h2 className="section-title">{title}</h2>
-      {description && <p className="section-header__desc">{description}</p>}
+      {description && <p className="section-desc">{description}</p>}
     </div>
   );
 }
 
-/** Loading placeholder for KPI cards. */
+// ─── Loading Skeleton ─────────────────────────────────────────────
 export function SkeletonCards({ count = 4 }: { count?: number }) {
   return (
     <div className="summary-grid">
@@ -94,7 +99,6 @@ export function SkeletonCards({ count = 4 }: { count?: number }) {
   );
 }
 
-/** Loading placeholder for a chart. */
 export function SkeletonChart() {
   return <div className="skeleton skeleton--chart" />;
 }

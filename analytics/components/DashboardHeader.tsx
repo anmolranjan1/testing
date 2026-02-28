@@ -12,48 +12,34 @@ export default function DashboardHeader({
   errorCount,
   userName,
 }: Props) {
-  const hour = new Date().getHours();
-  const greeting =
-    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-
-  const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
-  const compliancePct = summary?.overallPolicyCompliancePercent ?? 0;
-  const auditPct = summary?.auditTaskCompletionPercent ?? 0;
+  const firstName = userName?.split(" ")[0] ?? "there";
 
   const cards = [
     {
       label: "Policy Compliance",
-      value: `${compliancePct.toFixed(1)}%`,
-      hint: "Policies accepted across the organization",
+      value: `${(summary?.overallPolicyCompliancePercent ?? 0).toFixed(1)}%`,
+      hint: "How many policies have been accepted overall",
       Icon: TrendingUp,
       color: "success",
-      progress: compliancePct,
     },
     {
       label: "Pending Policies",
       value: String(summary?.pendingPolicyAcceptancesCount ?? 0),
-      hint: "Policies waiting to be accepted",
+      hint: "Policies waiting to be accepted by employees",
       Icon: Clock,
       color: "warning",
     },
     {
       label: "Audit Completion",
-      value: `${auditPct.toFixed(1)}%`,
-      hint: "Audit tasks completed so far",
+      value: `${(summary?.auditTaskCompletionPercent ?? 0).toFixed(1)}%`,
+      hint: "Percentage of audit tasks marked complete",
       Icon: CheckCircle,
       color: "primary",
-      progress: auditPct,
     },
     {
       label: "Overdue Audits",
       value: String(summary?.overdueAuditTasksCount ?? 0),
-      hint: "Audit tasks past their due date",
+      hint: "Audit tasks that have passed their due date",
       Icon: AlertCircle,
       color: "danger",
     },
@@ -64,14 +50,14 @@ export default function DashboardHeader({
       <div className="dashboard__header">
         <div>
           <h1 className="dashboard__title">
-            {greeting}
-            {userName ? `, ${userName}` : ""}
+            Hi {firstName}, here's your dashboard
           </h1>
           <p className="dashboard__subtitle">
-            {today}
+            A quick snapshot of compliance across your organization.
             {errorCount > 0 && (
               <span className="text-warning ms-2">
-                · {errorCount} chart{errorCount > 1 ? "s" : ""} couldn't load
+                ({errorCount} chart{errorCount > 1 ? "s" : ""} couldn't load —
+                try refreshing)
               </span>
             )}
           </p>
@@ -89,14 +75,6 @@ export default function DashboardHeader({
             <p className="summary-card__label">{c.label}</p>
             <p className="summary-card__value">{c.value}</p>
             <p className="summary-card__hint">{c.hint}</p>
-            {c.progress !== undefined && (
-              <div className="summary-card__progress">
-                <div
-                  className={`summary-card__progress-fill summary-card__progress-fill--${c.color}`}
-                  style={{ width: `${Math.min(c.progress, 100)}%` }}
-                />
-              </div>
-            )}
           </div>
         ))}
       </div>

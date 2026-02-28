@@ -5,7 +5,7 @@
 /* ─── Layout ──────────────────────────────────────────────────── */
 
 .dashboard {
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 3rem;
   max-width: 1440px;
   margin: 0 auto;
 }
@@ -15,20 +15,21 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
   flex-wrap: wrap;
 }
 
 .dashboard__title {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
   margin: 0;
 }
 
 .dashboard__subtitle {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--bs-secondary-color);
-  margin: 0.25rem 0 0;
+  margin: 0.35rem 0 0;
+  line-height: 1.5;
 }
 
 /* ─── Summary Cards ───────────────────────────────────────────── */
@@ -58,14 +59,6 @@
   padding: 1.25rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--bs-border-color);
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .summary-card__icon-wrap {
@@ -99,7 +92,7 @@
 }
 
 .summary-card__label {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--bs-secondary-color);
   text-transform: uppercase;
@@ -115,38 +108,17 @@
 }
 
 .summary-card__hint {
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   color: var(--bs-secondary-color);
-  margin: 0.25rem 0 0;
+  margin: 0.35rem 0 0;
+  line-height: 1.4;
 }
 
-.summary-card__progress {
-  height: 4px;
-  border-radius: 2px;
-  background: var(--bs-border-color);
-  margin-top: 0.75rem;
-  overflow: hidden;
-}
-
-.summary-card__progress-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.6s ease;
-}
-
-.summary-card__progress-fill--success {
-  background: #198754;
-}
-
-.summary-card__progress-fill--primary {
-  background: #0d6efd;
-}
-
-/* ─── Section Title ───────────────────────────────────────────── */
+/* ─── Section Header ──────────────────────────────────────────── */
 
 .section-header {
-  margin: 2.5rem 0 1.25rem;
-  padding-bottom: 0.75rem;
+  margin: 2.25rem 0 1.25rem;
+  padding-bottom: 0.5rem;
   border-bottom: 2px solid var(--bs-border-color);
 }
 
@@ -157,11 +129,10 @@
   color: var(--bs-heading-color, var(--bs-body-color));
 }
 
-.section-header__desc {
+.section-desc {
   font-size: 0.8rem;
   color: var(--bs-secondary-color);
   margin: 0.25rem 0 0;
-  line-height: 1.4;
 }
 
 /* ─── Chart Grid ──────────────────────────────────────────────── */
@@ -213,17 +184,26 @@
   margin: 0;
 }
 
-.chart-card__desc {
-  font-size: 0.78rem;
-  color: var(--bs-secondary-color);
-  margin: 0.15rem 0 0;
-  line-height: 1.4;
-}
-
 .chart-card__subtitle {
   font-size: 0.78rem;
   color: var(--bs-secondary-color);
   margin: 0.15rem 0 0;
+}
+
+.chart-card__desc {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  color: var(--bs-secondary-color);
+  margin: 0.4rem 0 0;
+  line-height: 1.5;
+}
+
+.chart-card__desc-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  opacity: 0.6;
 }
 
 .chart-card__controls {
@@ -247,15 +227,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem 1rem;
+  padding: 2.5rem 1.5rem;
   text-align: center;
   min-height: 200px;
 }
 
 .chart-empty__icon {
   font-size: 2rem;
-  margin-bottom: 0.5rem;
-  opacity: 0.4;
+  margin-bottom: 0.75rem;
+  opacity: 0.3;
 }
 
 .chart-empty__title {
@@ -266,7 +246,7 @@
 }
 
 .chart-empty__text {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--bs-secondary-color);
   margin: 0;
   max-width: 280px;
@@ -409,10 +389,6 @@
 [data-bs-theme="dark"] .summary-card,
 [data-bs-theme="dark"] .chart-card {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-}
-
-[data-bs-theme="dark"] .summary-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 [data-bs-theme="dark"] .summary-card__icon-wrap--success {

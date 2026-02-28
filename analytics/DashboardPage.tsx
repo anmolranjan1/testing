@@ -14,6 +14,8 @@ import "./dashboard.css";
 
 /**
  * Analytics Dashboard — visible to ADMIN and MANAGER.
+ *
+ * Renders KPI summary cards, shared charts, and role-specific charts.
  */
 export default function DashboardPage() {
   const user = useSelector((s: RootState) => s.auth.user);
@@ -25,6 +27,7 @@ export default function DashboardPage() {
 
   const data = useAnalyticsData(userId, role);
 
+  // Loading skeleton
   if (data.loading) {
     return (
       <div className="dashboard">
@@ -37,11 +40,12 @@ export default function DashboardPage() {
     );
   }
 
+  // Fatal error — no summary
   if (!data.summary) {
     return (
       <div className="dashboard">
         <div className="alert alert-danger">
-          We couldn't load the dashboard. Please try refreshing the page.
+          Failed to load dashboard. Please refresh the page.
         </div>
       </div>
     );
@@ -61,7 +65,7 @@ export default function DashboardPage() {
         <>
           <SectionTitle
             title="Overview"
-            description="Key metrics about audits, quizzes, and policy compliance"
+            description="High-level charts shared across your organization"
           />
           <SharedCharts
             auditChart={data.auditChart}
@@ -78,8 +82,8 @@ export default function DashboardPage() {
       {isAdmin && (
         <>
           <SectionTitle
-            title="Organization"
-            description="Policy distribution, department progress, and rollout trends"
+            title="Admin Insights"
+            description="Organization-wide policy and department data visible only to admins"
           />
           <AdminCharts
             mostAssigned={data.mostAssigned}
@@ -97,8 +101,8 @@ export default function DashboardPage() {
       {isManager && (
         <>
           <SectionTitle
-            title="Your Team"
-            description="Quiz scores, top performers, and pending work for your team"
+            title="Team Performance"
+            description="Quiz scores, pending work, and top performers across your team"
           />
           <ManagerCharts
             teamHistogram={data.teamHistogram}

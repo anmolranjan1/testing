@@ -16,6 +16,8 @@ import type {
   TeamTopPerformer,
 } from "../../../shared/types/analytics";
 
+// ─── Props ────────────────────────────────────────────────────────
+
 interface Props {
   teamHistogram: TeamQuizHistogram | null;
   teamPending: TeamPendingPolicy[];
@@ -28,6 +30,8 @@ interface Props {
     policyId?: number,
   ) => Promise<void>;
 }
+
+// ─── Component ────────────────────────────────────────────────────
 
 export default function ManagerCharts({
   teamHistogram,
@@ -52,11 +56,13 @@ export default function ManagerCharts({
     reloadTopPerformers(10, 1, id);
   };
 
+  // Build policy options from pending list
   const policyOptions = (teamPending ?? []).map((p) => ({
     id: p?.policyId ?? 0,
     title: p?.policyTitle ?? `Policy #${p?.policyId ?? "?"}`,
   }));
 
+  // Reusable policy filter dropdown
   const renderPolicySelect = (
     value: number | undefined,
     onChange: (v: string) => void,
@@ -79,27 +85,28 @@ export default function ManagerCharts({
 
   return (
     <>
-      {/* Row 1: Score Distribution + Top Performers */}
+      {/* ── Row 1: Histogram + Top Performers ──────────────────── */}
       <div className="chart-grid chart-grid--two">
+        {/* Quiz Score Distribution */}
         {errors["histogram"] ? (
           <ChartError
-            title="Score Distribution"
+            title="Quiz Score Distribution"
             message={errors["histogram"]}
           />
         ) : teamHistogram?.bins?.length ? (
           <ChartCard
-            title="Score Distribution"
-            description="How your team scored across quizzes"
+            title="Quiz Score Distribution"
             subtitle={`${formatNumber(teamHistogram?.totalAssignments)} submissions`}
+            description="Shows how your team's quiz scores are spread — most bars should lean right"
             controls={renderPolicySelect(histPolicy, onHistPolicyChange)}
           >
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={(teamHistogram.bins ?? []).map((b) => ({
-                  range: `${b?.lowerBound ?? 0}\u2013${b?.upperBound ?? 0}`,
+                  range: `${b?.lowerBound ?? 0}–${b?.upperBound ?? 0}%`,
                   count: b?.count ?? 0,
                 }))}
-                margin={{ bottom: 15 }}
+                margin={{ bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
                 <XAxis
@@ -108,28 +115,22 @@ export default function ManagerCharts({
                   label={{
                     value: "Score Range",
                     position: "insideBottom",
-                    offset: -5,
+                    offset: -10,
                     fontSize: 11,
                     fill: "#6c757d",
                   }}
                 />
                 <YAxis
                   allowDecimals={false}
-                  label={{
-                    value: "People",
-                    angle: -90,
-                    position: "insideLeft",
-                    offset: 10,
-                    fontSize: 11,
-                    fill: "#6c757d",
-                  }}
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(v: number) => formatNumber(v)}
                 />
                 <Tooltip
                   formatter={(v: number | undefined) => [
-                    formatNumber(v),
-                    "Submissions",
+                    `${formatNumber(v)} submissions`,
+                    "Count",
                   ]}
-                  labelFormatter={(l) => `Score: ${l}`}
+                  labelFormatter={(label) => `Score: ${label}`}
                 />
                 <Bar
                   dataKey="count"
@@ -141,15 +142,16 @@ export default function ManagerCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Score Distribution" />
+          <ChartEmpty title="Quiz Score Distribution" />
         )}
 
+        {/* Top Performers — Table */}
         {errors["topPerf"] ? (
           <ChartError title="Top Performers" message={errors["topPerf"]} />
         ) : teamTopPerformers?.length ? (
           <ChartCard
             title="Top Performers"
-            description="Team members with the highest quiz scores"
+            description="Team members with the highest average quiz scores"
             controls={renderPolicySelect(perfPolicy, onPerfPolicyChange)}
           >
             <div style={{ maxHeight: 320, overflowY: "auto" }}>
@@ -157,10 +159,10 @@ export default function ManagerCharts({
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Name</th>
+                    <th>Employee</th>
                     <th>Avg Score</th>
-                    <th>Quizzes</th>
-                    <th style={{ minWidth: 80 }}></th>
+                    <th>Attempts</th>
+                    <th>Progress</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -201,14 +203,17 @@ export default function ManagerCharts({
         )}
       </div>
 
-      {/* Row 2: Pending Approvals */}
+      {/* ── Row 2: Pending Policies (full width) ───────────────── */}
       <div className="chart-grid chart-grid--one">
         {errors["pending"] ? (
-          <ChartError title="Pending Approvals" message={errors["pending"]} />
+          <ChartError
+            title="Pending Policy Acceptances"
+            message={errors["pending"]}
+          />
         ) : teamPending?.length ? (
           <ChartCard
-            title="Pending Approvals"
-            description="Policies your team hasn't accepted yet"
+            title="Pending Policy Acceptances"
+            description="Policies your team members haven't accepted yet — longer bars need attention"
           >
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
@@ -221,6 +226,13 @@ export default function ManagerCharts({
                   type="number"
                   tick={{ fontSize: 11 }}
                   allowDecimals={false}
+                  label={{
+                    value: "Employees Pending",
+                    position: "insideBottom",
+                    offset: -2,
+                    fontSize: 11,
+                    fill: "#6c757d",
+                  }}
                 />
                 <YAxis
                   dataKey="policyTitle"
@@ -230,10 +242,10 @@ export default function ManagerCharts({
                 />
                 <Tooltip
                   formatter={(v: number | undefined) => [
-                    `${formatNumber(v)} employee(s)`,
-                    "Still pending",
+                    `${formatNumber(v)} employees haven't accepted yet`,
+                    "Pending",
                   ]}
-                  labelFormatter={(l) => `${l ?? "—"}`}
+                  labelFormatter={(label) => `${label ?? "—"}`}
                 />
                 <Bar
                   dataKey="pendingCount"
@@ -245,7 +257,7 @@ export default function ManagerCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Pending Approvals" />
+          <ChartEmpty title="Pending Policy Acceptances" />
         )}
       </div>
     </>
