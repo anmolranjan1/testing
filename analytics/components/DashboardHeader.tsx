@@ -6,6 +6,7 @@ interface Props {
   summary: DashboardSummary;
   errorCount: number;
   userName?: string;
+  role?: string;
 }
 
 /**
@@ -23,6 +24,7 @@ export default function DashboardHeader({
   summary,
   errorCount,
   userName,
+  role,
 }: Props) {
   const firstName = userName?.split(" ")[0] ?? "there";
 
@@ -71,10 +73,12 @@ export default function DashboardHeader({
             </span>
           </h1>
           <p className="dashboard__subtitle">
-            Here's a quick snapshot of compliance across your organization.
+            <span className="dashboard__scope">
+              {role === "ADMIN" ? "Organization overview" : "Team overview"}
+            </span>
             {errorCount > 0 && (
-              <span className="text-warning ms-2">
-                ({errorCount} chart{errorCount > 1 ? "s" : ""} couldn't load)
+              <span className="dashboard__error-badge">
+                {errorCount} chart{errorCount > 1 ? "s" : ""} couldn't load
               </span>
             )}
           </p>

@@ -99,7 +99,6 @@ export default function SharedCharts({
           <ChartCard
             title="Audit Tasks"
             subtitle={`${formatNumber(auditChart?.total)} total`}
-            description="Shows how many audit tasks are pending, in progress, or completed"
           >
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
@@ -153,12 +152,11 @@ export default function SharedCharts({
 
         {/* Quiz Coverage — Pie */}
         {errors["withQuiz"] ? (
-          <ChartError title="Quiz Coverage" message={errors["withQuiz"]} />
+          <ChartError title="Quiz Availability" message={errors["withQuiz"]} />
         ) : policiesWithQuiz?.slices?.length ? (
           <ChartCard
-            title="Quiz Coverage"
+            title="Quiz Availability"
             subtitle={`${formatNumber(policiesWithQuiz?.total)} policies`}
-            description="How many policies have a quiz attached vs. those that don't"
           >
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
@@ -202,8 +200,8 @@ export default function SharedCharts({
           </ChartCard>
         ) : (
           <ChartEmpty
-            title="Quiz Coverage"
-            hint="Attach quizzes to policies to see coverage."
+            title="Quiz Availability"
+            hint="Attach quizzes to policies to see availability."
           />
         )}
       </div>
@@ -227,27 +225,45 @@ export default function SharedCharts({
                   disabled={reloading["avgQuiz"]}
                 />
                 <span className="small text-muted text-nowrap">
-                  Hide policies with no attempts
+                  Exclude zero scores
                 </span>
               </label>
             }
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={avgQuizScores.data} margin={{ bottom: 10 }}>
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart
+                data={avgQuizScores.data}
+                margin={{ left: 5, bottom: 10 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
                 <XAxis
                   dataKey="policyTitle"
                   angle={-20}
                   textAnchor="end"
-                  height={70}
+                  height={80}
                   tick={{ fontSize: 11 }}
                   interval={0}
                   tickFormatter={(v: string) => truncate(v)}
+                  label={{
+                    value: "Policy",
+                    position: "insideBottom",
+                    offset: 0,
+                    fontSize: 11,
+                    fill: "#6c757d",
+                  }}
                 />
                 <YAxis
                   domain={[0, 100]}
                   tick={{ fontSize: 11 }}
                   tickFormatter={(v: number) => `${v}%`}
+                  label={{
+                    value: "Avg Score (%)",
+                    angle: -90,
+                    position: "insideLeft",
+                    offset: 15,
+                    fontSize: 11,
+                    fill: "#6c757d",
+                  }}
                 />
                 <Tooltip
                   formatter={(v: number | undefined) => [
@@ -292,7 +308,7 @@ export default function SharedCharts({
                     onClick={() => onTrendMode("month")}
                     disabled={reloading["trend"]}
                   >
-                    Daily
+                    Weekly
                   </button>
                   <button
                     type="button"
@@ -321,14 +337,35 @@ export default function SharedCharts({
               </div>
             }
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={complianceTrend.buckets}>
+            <ResponsiveContainer width="100%" height={320}>
+              <LineChart
+                data={complianceTrend.buckets}
+                margin={{ left: 5, bottom: 15 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
-                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 12 }}
+                  label={{
+                    value: "Period",
+                    position: "insideBottom",
+                    offset: -10,
+                    fontSize: 11,
+                    fill: "#6c757d",
+                  }}
+                />
                 <YAxis
                   allowDecimals={false}
                   tick={{ fontSize: 11 }}
                   tickFormatter={(v: number) => formatNumber(v)}
+                  label={{
+                    value: "Accepted",
+                    angle: -90,
+                    position: "insideLeft",
+                    offset: 10,
+                    fontSize: 11,
+                    fill: "#6c757d",
+                  }}
                 />
                 <Tooltip
                   formatter={(v: number | undefined) => [

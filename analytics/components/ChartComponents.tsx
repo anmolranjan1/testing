@@ -57,14 +57,16 @@ export function ChartCard({
     <div className="chart-card chart-card--fade-in">
       <div className="chart-card__header">
         <div>
-          <h3 className="chart-card__title">{title}</h3>
+          <h3 className="chart-card__title">
+            {title}
+            {description && (
+              <span className="chart-card__info-trigger">
+                <Info size={14} />
+                <span className="chart-card__info-tooltip">{description}</span>
+              </span>
+            )}
+          </h3>
           {subtitle && <p className="chart-card__subtitle">{subtitle}</p>}
-          {description && (
-            <p className="chart-card__desc">
-              <Info size={13} className="chart-card__desc-icon" />
-              {description}
-            </p>
-          )}
         </div>
         {controls && (
           <div className="chart-card__controls chart-filter">{controls}</div>

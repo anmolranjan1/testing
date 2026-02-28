@@ -73,14 +73,12 @@ export default function DashboardPage() {
         summary={data.summary}
         errorCount={errorCount}
         userName={user?.name}
+        role={role}
       />
 
       {(isAdmin || isManager) && (
         <>
-          <SectionTitle
-            title="Overview"
-            description="High-level charts shared across your organization"
-          />
+          <SectionTitle title="Overview" />
           <SharedCharts
             auditChart={data.auditChart}
             avgQuizScores={data.avgQuizScores}
@@ -98,7 +96,7 @@ export default function DashboardPage() {
         <>
           <SectionTitle
             title="Admin Insights"
-            description="Organization-wide policy and department data visible only to admins"
+            description="Policy and department analytics"
           />
           <AdminCharts
             mostAssigned={data.mostAssigned}
@@ -118,7 +116,7 @@ export default function DashboardPage() {
         <>
           <SectionTitle
             title="Team Performance"
-            description="Quiz scores, pending work, and top performers across your team"
+            description="Quiz scores and pending work in your team"
           />
           <ManagerCharts
             teamHistogram={data.teamHistogram}

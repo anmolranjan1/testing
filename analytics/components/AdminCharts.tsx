@@ -125,7 +125,7 @@ export default function AdminCharts({
                     onChange={(e) => onInactiveToggle(e.target.checked)}
                     disabled={reloading["mostAssigned"]}
                   />
-                  <span className="small text-muted">Show inactive</span>
+                  <span className="small text-muted">Include inactive</span>
                 </label>
               </div>
             }
@@ -255,7 +255,7 @@ export default function AdminCharts({
               <BarChart
                 data={deptCompliance}
                 layout="vertical"
-                margin={{ left: 10, bottom: 5 }}
+                margin={{ left: 10, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
                 <XAxis
@@ -316,7 +316,7 @@ export default function AdminCharts({
         ) : monthlyRollout?.length ? (
           <ChartCard
             title="New Policies Over Time"
-            description="How many new policies were created each month"
+            description="New policies created over time"
             isLoading={reloading["rollout"]}
             controls={
               <select

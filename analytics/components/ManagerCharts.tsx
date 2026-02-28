@@ -178,7 +178,6 @@ export default function ManagerCharts({
                     <th>#</th>
                     <th>Employee</th>
                     <th>Avg Score</th>
-                    <th>Attempts</th>
                     <th>Progress</th>
                   </tr>
                 </thead>
@@ -198,7 +197,6 @@ export default function ManagerCharts({
                       <td className="fw-semibold">
                         {(p?.averageScore ?? 0).toFixed(1)}%
                       </td>
-                      <td>{p?.attempts ?? 0}</td>
                       <td>
                         <div className="perf-table__score-bar">
                           <div
