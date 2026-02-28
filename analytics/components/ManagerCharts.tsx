@@ -16,8 +16,6 @@ import type {
   TeamTopPerformer,
 } from "../../../shared/types/analytics";
 
-// ─── Props ────────────────────────────────────────────────────────
-
 interface Props {
   teamHistogram: TeamQuizHistogram | null;
   teamPending: TeamPendingPolicy[];
@@ -30,8 +28,6 @@ interface Props {
     policyId?: number,
   ) => Promise<void>;
 }
-
-// ─── Component ────────────────────────────────────────────────────
 
 export default function ManagerCharts({
   teamHistogram,
@@ -56,13 +52,11 @@ export default function ManagerCharts({
     reloadTopPerformers(10, 1, id);
   };
 
-  // Build policy options from pending list
   const policyOptions = (teamPending ?? []).map((p) => ({
     id: p?.policyId ?? 0,
     title: p?.policyTitle ?? `Policy #${p?.policyId ?? "?"}`,
   }));
 
-  // Reusable policy filter dropdown
   const renderPolicySelect = (
     value: number | undefined,
     onChange: (v: string) => void,
@@ -85,24 +79,24 @@ export default function ManagerCharts({
 
   return (
     <>
-      {/* ── Row 1: Histogram + Top Performers ──────────────────── */}
+      {/* Row 1: Score Distribution + Top Performers */}
       <div className="chart-grid chart-grid--two">
-        {/* Quiz Score Distribution — Histogram */}
         {errors["histogram"] ? (
           <ChartError
-            title="Team Quiz Score Distribution"
+            title="Score Distribution"
             message={errors["histogram"]}
           />
         ) : teamHistogram?.bins?.length ? (
           <ChartCard
-            title="Team Quiz Score Distribution"
+            title="Score Distribution"
+            description="How your team scored across quizzes"
             subtitle={`${formatNumber(teamHistogram?.totalAssignments)} submissions`}
             controls={renderPolicySelect(histPolicy, onHistPolicyChange)}
           >
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={(teamHistogram.bins ?? []).map((b) => ({
-                  range: `${b?.lowerBound ?? 0}-${b?.upperBound ?? 0}`,
+                  range: `${b?.lowerBound ?? 0}\u2013${b?.upperBound ?? 0}`,
                   count: b?.count ?? 0,
                 }))}
                 margin={{ bottom: 15 }}
@@ -122,7 +116,7 @@ export default function ManagerCharts({
                 <YAxis
                   allowDecimals={false}
                   label={{
-                    value: "Submissions",
+                    value: "People",
                     angle: -90,
                     position: "insideLeft",
                     offset: 10,
@@ -147,15 +141,15 @@ export default function ManagerCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Team Quiz Score Distribution" />
+          <ChartEmpty title="Score Distribution" />
         )}
 
-        {/* Top Performers — Table + Score bars */}
         {errors["topPerf"] ? (
-          <ChartError title="Top Team Performers" message={errors["topPerf"]} />
+          <ChartError title="Top Performers" message={errors["topPerf"]} />
         ) : teamTopPerformers?.length ? (
           <ChartCard
-            title="Top Team Performers"
+            title="Top Performers"
+            description="Team members with the highest quiz scores"
             controls={renderPolicySelect(perfPolicy, onPerfPolicyChange)}
           >
             <div style={{ maxHeight: 320, overflowY: "auto" }}>
@@ -165,7 +159,7 @@ export default function ManagerCharts({
                     <th>#</th>
                     <th>Name</th>
                     <th>Avg Score</th>
-                    <th>Attempts</th>
+                    <th>Quizzes</th>
                     <th style={{ minWidth: 80 }}></th>
                   </tr>
                 </thead>
@@ -203,19 +197,19 @@ export default function ManagerCharts({
             </div>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Top Team Performers" />
+          <ChartEmpty title="Top Performers" />
         )}
       </div>
 
-      {/* ── Row 2: Team Pending Policies (full width) ──────────── */}
+      {/* Row 2: Pending Approvals */}
       <div className="chart-grid chart-grid--one">
         {errors["pending"] ? (
-          <ChartError
-            title="Team Pending Policies"
-            message={errors["pending"]}
-          />
+          <ChartError title="Pending Approvals" message={errors["pending"]} />
         ) : teamPending?.length ? (
-          <ChartCard title="Team Pending Policies">
+          <ChartCard
+            title="Pending Approvals"
+            description="Policies your team hasn't accepted yet"
+          >
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={teamPending}
@@ -237,9 +231,9 @@ export default function ManagerCharts({
                 <Tooltip
                   formatter={(v: number | undefined) => [
                     `${formatNumber(v)} employee(s)`,
-                    "Pending",
+                    "Still pending",
                   ]}
-                  labelFormatter={(l) => `Policy: ${l ?? "—"}`}
+                  labelFormatter={(l) => `${l ?? "—"}`}
                 />
                 <Bar
                   dataKey="pendingCount"
@@ -251,7 +245,7 @@ export default function ManagerCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Team Pending Policies" />
+          <ChartEmpty title="Pending Approvals" />
         )}
       </div>
     </>

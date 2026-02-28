@@ -21,8 +21,6 @@ import type {
   ChecklistItemsBubble,
 } from "../../../shared/types/analytics";
 
-// ─── Props ────────────────────────────────────────────────────────
-
 interface Props {
   mostAssigned: MostAssignedPolicy[];
   policiesByCategory: PoliciesByCategoryResponse | null;
@@ -33,8 +31,6 @@ interface Props {
   reloadMostAssigned: (top: number, includeInactive: boolean) => Promise<void>;
   reloadRollout: (start?: Date, end?: Date) => Promise<void>;
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────
 
 const rolloutRange = (period: string): { start?: Date; end?: Date } => {
   const now = new Date();
@@ -55,8 +51,6 @@ const rolloutRange = (period: string): { start?: Date; end?: Date } => {
       return {};
   }
 };
-
-// ─── Component ────────────────────────────────────────────────────
 
 export default function AdminCharts({
   mostAssigned,
@@ -89,17 +83,17 @@ export default function AdminCharts({
 
   return (
     <>
-      {/* ── Row 1: Most Assigned + Policies by Category ────────── */}
+      {/* Row 1: Popular Policies + Policy Categories */}
       <div className="chart-grid chart-grid--two">
-        {/* Most Assigned */}
         {errors["mostAssigned"] ? (
           <ChartError
-            title="Most Assigned Policies"
+            title="Popular Policies"
             message={errors["mostAssigned"]}
           />
         ) : mostAssigned?.length ? (
           <ChartCard
-            title="Most Assigned Policies"
+            title="Popular Policies"
+            description="Most frequently assigned across the organization"
             controls={
               <div className="d-flex align-items-center gap-2">
                 <select
@@ -108,9 +102,9 @@ export default function AdminCharts({
                   value={topCount}
                   onChange={(e) => onTopChange(e.target.value)}
                 >
-                  <option value={5}>Top 5</option>
-                  <option value={10}>Top 10</option>
-                  <option value={20}>Top 20</option>
+                  <option value={5}>Show 5</option>
+                  <option value={10}>Show 10</option>
+                  <option value={20}>Show 20</option>
                 </select>
                 <label className="d-flex align-items-center gap-1 mb-0 text-nowrap">
                   <input
@@ -119,7 +113,7 @@ export default function AdminCharts({
                     checked={includeInactive}
                     onChange={(e) => onInactiveToggle(e.target.checked)}
                   />
-                  <span className="small text-muted">Incl. Inactive</span>
+                  <span className="small text-muted">Include archived</span>
                 </label>
               </div>
             }
@@ -145,9 +139,9 @@ export default function AdminCharts({
                 <Tooltip
                   formatter={(v: number | undefined) => [
                     formatNumber(v),
-                    "Assignments",
+                    "Employees assigned",
                   ]}
-                  labelFormatter={(l) => `Policy: ${l ?? "—"}`}
+                  labelFormatter={(l) => `${l ?? "—"}`}
                 />
                 <Bar
                   dataKey="assignmentCount"
@@ -159,17 +153,19 @@ export default function AdminCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Most Assigned Policies" />
+          <ChartEmpty title="Popular Policies" />
         )}
 
-        {/* Policies by Category */}
         {errors["byCategory"] ? (
           <ChartError
-            title="Policies by Category"
+            title="Policy Categories"
             message={errors["byCategory"]}
           />
         ) : policiesByCategory?.data?.length ? (
-          <ChartCard title="Policies by Category">
+          <ChartCard
+            title="Policy Categories"
+            description="How policies are grouped by category"
+          >
             <ResponsiveContainer width="100%" height={320}>
               <BarChart
                 data={policiesByCategory.data}
@@ -193,7 +189,7 @@ export default function AdminCharts({
                     formatNumber(v),
                     "Policies",
                   ]}
-                  labelFormatter={(l) => `Category: ${l ?? "—"}`}
+                  labelFormatter={(l) => `${l ?? "—"}`}
                 />
                 <Bar
                   dataKey="count"
@@ -205,20 +201,22 @@ export default function AdminCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Policies by Category" />
+          <ChartEmpty title="Policy Categories" />
         )}
       </div>
 
-      {/* ── Row 2: Dept Compliance + Monthly Rollout ───────────── */}
+      {/* Row 2: Department Progress + New Policies Over Time */}
       <div className="chart-grid chart-grid--two">
-        {/* Department Compliance — Stacked */}
         {errors["deptCompliance"] ? (
           <ChartError
-            title="Compliance by Department"
+            title="Department Progress"
             message={errors["deptCompliance"]}
           />
         ) : deptCompliance?.length ? (
-          <ChartCard title="Compliance by Department">
+          <ChartCard
+            title="Department Progress"
+            description="Accepted vs pending policies in each department"
+          >
             <ResponsiveContainer width="100%" height={320}>
               <BarChart
                 data={deptCompliance}
@@ -241,8 +239,8 @@ export default function AdminCharts({
                   formatter={(
                     v: number | undefined,
                     name: string | undefined,
-                  ) => [`${formatNumber(v)} record(s)`, name ?? ""]}
-                  labelFormatter={(l) => `Dept: ${l ?? "—"}`}
+                  ) => [formatNumber(v), name ?? ""]}
+                  labelFormatter={(l) => `${l ?? "—"}`}
                 />
                 <Bar
                   dataKey="accepted"
@@ -262,18 +260,18 @@ export default function AdminCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Compliance by Department" />
+          <ChartEmpty title="Department Progress" />
         )}
 
-        {/* Monthly Rollout — Area */}
         {errors["rollout"] ? (
           <ChartError
-            title="Monthly Policy Rollout"
+            title="New Policies Over Time"
             message={errors["rollout"]}
           />
         ) : monthlyRollout?.length ? (
           <ChartCard
-            title="Monthly Policy Rollout"
+            title="New Policies Over Time"
+            description="Monthly trend of newly created policies"
             controls={
               <select
                 className="form-select form-select-sm"
@@ -321,19 +319,19 @@ export default function AdminCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Monthly Policy Rollout" />
+          <ChartEmpty title="New Policies Over Time" />
         )}
       </div>
 
-      {/* ── Row 3: Checklist Items per Policy (full width bar) ── */}
+      {/* Row 3: Policy Checklists */}
       <div className="chart-grid chart-grid--one">
         {errors["bubble"] ? (
-          <ChartError
-            title="Checklist Items per Policy"
-            message={errors["bubble"]}
-          />
+          <ChartError title="Policy Checklists" message={errors["bubble"]} />
         ) : checklistBubble?.length ? (
-          <ChartCard title="Checklist Items per Policy">
+          <ChartCard
+            title="Policy Checklists"
+            description="Number of checklist items attached to each policy"
+          >
             <ResponsiveContainer width="100%" height={320}>
               <BarChart
                 data={checklistBubble}
@@ -357,7 +355,7 @@ export default function AdminCharts({
                     formatNumber(v),
                     "Items",
                   ]}
-                  labelFormatter={(l) => `Policy: ${l ?? "—"}`}
+                  labelFormatter={(l) => `${l ?? "—"}`}
                 />
                 <Bar
                   dataKey="itemCount"
@@ -369,7 +367,7 @@ export default function AdminCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Checklist Items per Policy" />
+          <ChartEmpty title="Policy Checklists" />
         )}
       </div>
     </>

@@ -120,15 +120,48 @@
   margin: 0.25rem 0 0;
 }
 
+.summary-card__progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bs-border-color);
+  margin-top: 0.75rem;
+  overflow: hidden;
+}
+
+.summary-card__progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+.summary-card__progress-fill--success {
+  background: #198754;
+}
+
+.summary-card__progress-fill--primary {
+  background: #0d6efd;
+}
+
 /* ─── Section Title ───────────────────────────────────────────── */
+
+.section-header {
+  margin: 2.5rem 0 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--bs-border-color);
+}
 
 .section-title {
   font-size: 1.1rem;
   font-weight: 600;
-  margin: 2rem 0 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--bs-border-color);
+  margin: 0;
   color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.section-header__desc {
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color);
+  margin: 0.25rem 0 0;
+  line-height: 1.4;
 }
 
 /* ─── Chart Grid ──────────────────────────────────────────────── */
@@ -180,6 +213,13 @@
   margin: 0;
 }
 
+.chart-card__desc {
+  font-size: 0.78rem;
+  color: var(--bs-secondary-color);
+  margin: 0.15rem 0 0;
+  line-height: 1.4;
+}
+
 .chart-card__subtitle {
   font-size: 0.78rem;
   color: var(--bs-secondary-color);
@@ -218,10 +258,18 @@
   opacity: 0.4;
 }
 
+.chart-empty__title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  color: var(--bs-body-color);
+}
+
 .chart-empty__text {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--bs-secondary-color);
   margin: 0;
+  max-width: 280px;
 }
 
 .chart-error__icon {
@@ -240,6 +288,13 @@
   color: var(--bs-secondary-color);
   margin: 0;
   max-width: 320px;
+}
+
+.chart-error__hint {
+  font-size: 0.75rem;
+  color: var(--bs-secondary-color);
+  margin: 0.5rem 0 0;
+  opacity: 0.7;
 }
 
 /* ─── Small Filter Controls ───────────────────────────────────── */

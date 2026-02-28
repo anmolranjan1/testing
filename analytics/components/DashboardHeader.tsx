@@ -4,35 +4,56 @@ import type { DashboardSummary } from "../../../shared/types/analytics";
 interface Props {
   summary: DashboardSummary;
   errorCount: number;
+  userName?: string;
 }
 
-export default function DashboardHeader({ summary, errorCount }: Props) {
+export default function DashboardHeader({
+  summary,
+  errorCount,
+  userName,
+}: Props) {
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  const compliancePct = summary?.overallPolicyCompliancePercent ?? 0;
+  const auditPct = summary?.auditTaskCompletionPercent ?? 0;
+
   const cards = [
     {
       label: "Policy Compliance",
-      value: `${(summary?.overallPolicyCompliancePercent ?? 0).toFixed(1)}%`,
-      hint: "Overall acceptance rate",
+      value: `${compliancePct.toFixed(1)}%`,
+      hint: "Policies accepted across the organization",
       Icon: TrendingUp,
       color: "success",
+      progress: compliancePct,
     },
     {
       label: "Pending Policies",
       value: String(summary?.pendingPolicyAcceptancesCount ?? 0),
-      hint: "Awaiting acceptance",
+      hint: "Policies waiting to be accepted",
       Icon: Clock,
       color: "warning",
     },
     {
       label: "Audit Completion",
-      value: `${(summary?.auditTaskCompletionPercent ?? 0).toFixed(1)}%`,
-      hint: "Tasks completed",
+      value: `${auditPct.toFixed(1)}%`,
+      hint: "Audit tasks completed so far",
       Icon: CheckCircle,
       color: "primary",
+      progress: auditPct,
     },
     {
       label: "Overdue Audits",
       value: String(summary?.overdueAuditTasksCount ?? 0),
-      hint: "Past due date",
+      hint: "Audit tasks past their due date",
       Icon: AlertCircle,
       color: "danger",
     },
@@ -42,12 +63,15 @@ export default function DashboardHeader({ summary, errorCount }: Props) {
     <>
       <div className="dashboard__header">
         <div>
-          <h1 className="dashboard__title">Dashboard</h1>
+          <h1 className="dashboard__title">
+            {greeting}
+            {userName ? `, ${userName}` : ""}
+          </h1>
           <p className="dashboard__subtitle">
-            Overview of compliance metrics
+            {today}
             {errorCount > 0 && (
               <span className="text-warning ms-2">
-                ({errorCount} chart{errorCount > 1 ? "s" : ""} failed to load)
+                · {errorCount} chart{errorCount > 1 ? "s" : ""} couldn't load
               </span>
             )}
           </p>
@@ -65,6 +89,14 @@ export default function DashboardHeader({ summary, errorCount }: Props) {
             <p className="summary-card__label">{c.label}</p>
             <p className="summary-card__value">{c.value}</p>
             <p className="summary-card__hint">{c.hint}</p>
+            {c.progress !== undefined && (
+              <div className="summary-card__progress">
+                <div
+                  className={`summary-card__progress-fill summary-card__progress-fill--${c.color}`}
+                  style={{ width: `${Math.min(c.progress, 100)}%` }}
+                />
+              </div>
+            )}
           </div>
         ))}
       </div>
