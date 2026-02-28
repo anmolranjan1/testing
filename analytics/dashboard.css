@@ -24,6 +24,38 @@
   margin: 0;
 }
 
+/* Wave animation for the greeting emoji */
+@keyframes wave {
+  0% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(14deg);
+  }
+  30% {
+    transform: rotate(-8deg);
+  }
+  40% {
+    transform: rotate(14deg);
+  }
+  50% {
+    transform: rotate(-4deg);
+  }
+  60% {
+    transform: rotate(10deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.dashboard__wave {
+  display: inline-block;
+  margin-left: 0.4rem;
+  animation: wave 1.8s ease-in-out;
+  transform-origin: 70% 70%;
+}
+
 .dashboard__subtitle {
   font-size: 0.85rem;
   color: var(--bs-secondary-color);
@@ -89,6 +121,18 @@
   padding: 1.25rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--bs-border-color);
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.summary-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.summary-card--fade-in {
+  animation: fadeIn 0.4s ease both;
 }
 
 .summary-card__icon-wrap {
@@ -208,6 +252,14 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.chart-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .chart-card--fade-in {
@@ -520,6 +572,11 @@
 [data-bs-theme="dark"] .summary-card,
 [data-bs-theme="dark"] .chart-card {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+[data-bs-theme="dark"] .summary-card:hover,
+[data-bs-theme="dark"] .chart-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 [data-bs-theme="dark"] .summary-card__icon-wrap--success {

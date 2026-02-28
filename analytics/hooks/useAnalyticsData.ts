@@ -104,14 +104,16 @@ const INITIAL: AnalyticsState = {
 export function useAnalyticsData(userId: number, role: Role) {
   const [state, setState] = useState<AnalyticsState>(INITIAL);
 
-  // Guard against state updates after unmount
+  // Guard against state updates after unmount.
+  // Must re-set to `true` on every mount so React Strict Mode's
+  // unmount → remount cycle doesn't leave it permanently false.
   const mounted = useRef(true);
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
       mounted.current = false;
-    },
-    [],
-  );
+    };
+  }, []);
 
   // ─── Helpers ────────────────────────────────────────────────
 
@@ -149,10 +151,10 @@ export function useAnalyticsData(userId: number, role: Role) {
   /** Toggle the inline loading flag for a chart (used during filter changes). */
   const setReloading = useCallback(
     (key: string, busy: boolean) =>
-      patch({ reloading: { ...state.reloading, [key]: busy } }),
-    // state.reloading reference intentionally excluded — we always read the
-    // latest via the setState updater when it matters.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      setState((prev) => ({
+        ...prev,
+        reloading: { ...prev.reloading, [key]: busy },
+      })),
     [],
   );
 
