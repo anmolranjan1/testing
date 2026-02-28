@@ -23,6 +23,7 @@ interface Props {
   teamPending: TeamPendingPolicy[];
   teamTopPerformers: TeamTopPerformer[];
   errors: Record<string, string>;
+  reloading: Record<string, boolean>;
   reloadHistogram: (binSize: number, policyId?: number) => Promise<void>;
   reloadTopPerformers: (
     top: number,
@@ -38,6 +39,7 @@ export default function ManagerCharts({
   teamPending,
   teamTopPerformers,
   errors,
+  reloading,
   reloadHistogram,
   reloadTopPerformers,
 }: Props) {
@@ -66,6 +68,7 @@ export default function ManagerCharts({
   const renderPolicySelect = (
     value: number | undefined,
     onChange: (v: string) => void,
+    disabled?: boolean,
   ) =>
     policyOptions.length > 0 ? (
       <select
@@ -73,6 +76,7 @@ export default function ManagerCharts({
         style={{ width: "auto" }}
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
       >
         <option value="">All Policies</option>
         {policyOptions.map((p) => (
@@ -98,7 +102,12 @@ export default function ManagerCharts({
             title="Quiz Score Distribution"
             subtitle={`${formatNumber(teamHistogram?.totalAssignments)} submissions`}
             description="Shows how your team's quiz scores are spread — most bars should lean right"
-            controls={renderPolicySelect(histPolicy, onHistPolicyChange)}
+            isLoading={reloading["histogram"]}
+            controls={renderPolicySelect(
+              histPolicy,
+              onHistPolicyChange,
+              reloading["histogram"],
+            )}
           >
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
@@ -142,7 +151,10 @@ export default function ManagerCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Quiz Score Distribution" />
+          <ChartEmpty
+            title="Quiz Score Distribution"
+            hint="Team members need to take quizzes for this histogram."
+          />
         )}
 
         {/* Top Performers — Table */}
@@ -152,7 +164,12 @@ export default function ManagerCharts({
           <ChartCard
             title="Top Performers"
             description="Team members with the highest average quiz scores"
-            controls={renderPolicySelect(perfPolicy, onPerfPolicyChange)}
+            isLoading={reloading["topPerf"]}
+            controls={renderPolicySelect(
+              perfPolicy,
+              onPerfPolicyChange,
+              reloading["topPerf"],
+            )}
           >
             <div style={{ maxHeight: 320, overflowY: "auto" }}>
               <table className="perf-table">
@@ -199,7 +216,10 @@ export default function ManagerCharts({
             </div>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Top Performers" />
+          <ChartEmpty
+            title="Top Performers"
+            hint="Encourage your team to take quizzes to see top scorers."
+          />
         )}
       </div>
 
@@ -257,7 +277,10 @@ export default function ManagerCharts({
             </ResponsiveContainer>
           </ChartCard>
         ) : (
-          <ChartEmpty title="Pending Policy Acceptances" />
+          <ChartEmpty
+            title="Pending Policy Acceptances"
+            hint="No pending acceptances found — your team is up to date!"
+          />
         )}
       </div>
     </>

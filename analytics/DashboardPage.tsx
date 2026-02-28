@@ -9,6 +9,7 @@ import {
   SectionTitle,
   SkeletonCards,
   SkeletonChart,
+  SkeletonTitle,
 } from "./components/ChartComponents";
 import { AlertTriangle } from "lucide-react";
 import "./dashboard.css";
@@ -17,6 +18,8 @@ import "./dashboard.css";
  * Analytics Dashboard — visible to ADMIN and MANAGER.
  *
  * Renders KPI summary cards, shared charts, and role-specific charts.
+ * Data is fetched once on mount; individual charts can reload when
+ * the user adjusts a filter (trend mode, top-N, etc.).
  */
 export default function DashboardPage() {
   const user = useSelector((s: RootState) => s.auth.user);
@@ -28,12 +31,13 @@ export default function DashboardPage() {
 
   const data = useAnalyticsData(userId, role);
 
-  // Loading skeleton
+  // ── Loading skeleton — mirrors real layout so there's no jump ──
   if (data.loading) {
     return (
       <div className="dashboard dashboard--loading">
         <div className="skeleton skeleton--header" />
         <SkeletonCards />
+        <SkeletonTitle />
         <div className="chart-grid chart-grid--two">
           <SkeletonChart />
           <SkeletonChart />
@@ -45,7 +49,7 @@ export default function DashboardPage() {
     );
   }
 
-  // Fatal error — no summary at all
+  // ── Fatal error — summary failed entirely ──
   if (!data.summary) {
     return (
       <div className="dashboard">
@@ -54,7 +58,7 @@ export default function DashboardPage() {
           <h2 className="dashboard__fatal-title">Dashboard unavailable</h2>
           <p className="dashboard__fatal-text">
             We couldn't load your dashboard data. Please try refreshing the
-            page.
+            page. If this persists, contact your administrator.
           </p>
         </div>
       </div>
@@ -73,13 +77,17 @@ export default function DashboardPage() {
 
       {(isAdmin || isManager) && (
         <>
-          <SectionTitle title="Overview" />
+          <SectionTitle
+            title="Overview"
+            description="High-level charts shared across your organization"
+          />
           <SharedCharts
             auditChart={data.auditChart}
             avgQuizScores={data.avgQuizScores}
             policiesWithQuiz={data.policiesWithQuiz}
             complianceTrend={data.complianceTrend}
             errors={data.errors}
+            reloading={data.reloading}
             reloadTrend={data.reloadTrend}
             reloadQuizScores={data.reloadQuizScores}
           />
@@ -88,7 +96,10 @@ export default function DashboardPage() {
 
       {isAdmin && (
         <>
-          <SectionTitle title="Admin Insights" />
+          <SectionTitle
+            title="Admin Insights"
+            description="Organization-wide policy and department data visible only to admins"
+          />
           <AdminCharts
             mostAssigned={data.mostAssigned}
             policiesByCategory={data.policiesByCategory}
@@ -96,6 +107,7 @@ export default function DashboardPage() {
             monthlyRollout={data.monthlyRollout}
             checklistBubble={data.checklistBubble}
             errors={data.errors}
+            reloading={data.reloading}
             reloadMostAssigned={data.reloadMostAssigned}
             reloadRollout={data.reloadRollout}
           />
@@ -104,12 +116,16 @@ export default function DashboardPage() {
 
       {isManager && (
         <>
-          <SectionTitle title="Team Performance" />
+          <SectionTitle
+            title="Team Performance"
+            description="Quiz scores, pending work, and top performers across your team"
+          />
           <ManagerCharts
             teamHistogram={data.teamHistogram}
             teamPending={data.teamPending}
             teamTopPerformers={data.teamTopPerformers}
             errors={data.errors}
+            reloading={data.reloading}
             reloadHistogram={data.reloadHistogram}
             reloadTopPerformers={data.reloadTopPerformers}
           />

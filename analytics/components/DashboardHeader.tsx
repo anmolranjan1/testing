@@ -7,14 +7,6 @@ interface Props {
   userName?: string;
 }
 
-/** Returns a time-of-day greeting. */
-const getGreeting = (): string => {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
-};
-
 export default function DashboardHeader({
   summary,
   errorCount,
@@ -58,22 +50,22 @@ export default function DashboardHeader({
       <div className="dashboard__header">
         <div>
           <h1 className="dashboard__title">
-            {getGreeting()}, {firstName}
+            Hi {firstName}, here's your dashboard
           </h1>
-          {errorCount > 0 && (
-            <p className="dashboard__subtitle">
-              <span className="text-warning">
-                {errorCount} chart{errorCount > 1 ? "s" : ""} couldn't load —
-                try refreshing the page
+          <p className="dashboard__subtitle">
+            A quick snapshot of compliance across your organization.
+            {errorCount > 0 && (
+              <span className="text-warning ms-2">
+                ({errorCount} chart{errorCount > 1 ? "s" : ""} couldn't load)
               </span>
-            </p>
-          )}
+            )}
+          </p>
         </div>
       </div>
 
       <div className="summary-grid">
         {cards.map((c) => (
-          <div key={c.label} className="summary-card" title={c.hint}>
+          <div key={c.label} className="summary-card">
             <div
               className={`summary-card__icon-wrap summary-card__icon-wrap--${c.color}`}
             >
@@ -81,6 +73,7 @@ export default function DashboardHeader({
             </div>
             <p className="summary-card__label">{c.label}</p>
             <p className="summary-card__value">{c.value}</p>
+            <p className="summary-card__hint">{c.hint}</p>
           </div>
         ))}
       </div>
