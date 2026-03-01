@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { parseError } from "../../../shared/utils/errorParser";
+import { useState, useEffect } from "react";
 import {
   fetchSummary,
   fetchAuditStatus,
@@ -33,37 +32,24 @@ import type {
 
 // ─── Types ──────────────────────────────────────────────────────
 
-/** Every piece of data the dashboard consumes. */
 export interface AnalyticsState {
   loading: boolean;
   summary: DashboardSummary | null;
-
-  // Shared (ADMIN + MANAGER)
   auditChart: AuditTaskStatusChart | null;
   avgQuizScores: AverageQuizScoreResponse | null;
   policiesWithQuiz: PoliciesWithQuizPieResponse | null;
   complianceTrend: ComplianceTrendResponse | null;
-
-  // Admin only
   mostAssigned: MostAssignedPolicy[];
   policiesByCategory: PoliciesByCategoryResponse | null;
   deptCompliance: DepartmentComplianceBar[];
   monthlyRollout: MonthlyRollout[];
   checklistBubble: ChecklistItemsBubble[];
-
-  // Manager only
   teamHistogram: TeamQuizHistogram | null;
   teamPending: TeamPendingPolicy[];
   teamTopPerformers: TeamTopPerformer[];
-
-  /** Per-chart errors keyed by chart identifier. */
   errors: Record<string, string>;
-
-  /** Per-chart loading flags for filter-driven reloads. */
   reloading: Record<string, boolean>;
 }
-
-type Role = "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER";
 
 // ─── Initial state ──────────────────────────────────────────────
 
@@ -88,78 +74,10 @@ const INITIAL: AnalyticsState = {
 
 // ─── Hook ───────────────────────────────────────────────────────
 
-/**
- * Central data-fetching hook for the analytics dashboard.
- *
- * Design decisions:
- *  - Each API call is wrapped in `safe()` so one failure never blocks the rest.
- *  - Data loads in phases: **summary → shared → role-specific** to give the
- *    user something to see as fast as possible.
- *  - Filter-driven reloads (trend mode, year, top N, etc.) use `reloading`
- *    flags so chart cards can show inline loading overlays instead of replacing
- *    all content with a skeleton.
- *  - No refresh button — the data loads once on mount. If the user changes a
- *    filter, only that specific chart reloads.
- */
-export function useAnalyticsData(userId: number, role: Role) {
+export function useAnalyticsData(userId: number, role: string) {
   const [state, setState] = useState<AnalyticsState>(INITIAL);
 
-  // Guard against state updates after unmount.
-  // Must re-set to `true` on every mount so React Strict Mode's
-  // unmount → remount cycle doesn't leave it permanently false.
-  const mounted = useRef(true);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-
-  // ─── Helpers ────────────────────────────────────────────────
-
-  /** Merge a partial update into state (no-op if unmounted). */
-  const patch = useCallback((partial: Partial<AnalyticsState>) => {
-    if (!mounted.current) return;
-    setState((prev) => ({ ...prev, ...partial }));
-  }, []);
-
-  /** Run an API call; store data on success, store a human-readable error on failure. */
-  const safe = useCallback(
-    async <T>(key: string, loader: () => Promise<T>): Promise<T | null> => {
-      try {
-        const data = await loader();
-        setState((prev) => {
-          if (!mounted.current) return prev;
-          const { [key]: _, ...rest } = prev.errors;
-          return { ...prev, errors: rest };
-        });
-        return data;
-      } catch (err) {
-        setState((prev) => {
-          if (!mounted.current) return prev;
-          return {
-            ...prev,
-            errors: { ...prev.errors, [key]: parseError(err) },
-          };
-        });
-        return null;
-      }
-    },
-    [],
-  );
-
-  /** Toggle the inline loading flag for a chart (used during filter changes). */
-  const setReloading = useCallback(
-    (key: string, busy: boolean) =>
-      setState((prev) => ({
-        ...prev,
-        reloading: { ...prev.reloading, [key]: busy },
-      })),
-    [],
-  );
-
-  // ─── Initial Load ─────────────────────────────────────────
-
+  // Load all data when component mounts
   useEffect(() => {
     if (!userId) return;
 
@@ -167,147 +85,286 @@ export function useAnalyticsData(userId: number, role: Role) {
     const isAdmin = role === "ADMIN";
     const isManager = role === "MANAGER";
 
-    (async () => {
-      patch({ loading: true, errors: {}, reloading: {} });
+    // Load all data (state already has loading: true from INITIAL)
+    const loadData = async () => {
+      try {
+        // Phase 1: Get summary first
+        try {
+          const summary = await fetchSummary(userId);
+          if (cancelled) return;
+          setState((prev) => ({ ...prev, summary }));
+        } catch (error) {
+          console.error("Failed to load summary:", error);
+        }
 
-      // Phase 1 — summary first so KPI cards appear quickly
-      const summary = await safe("summary", () => fetchSummary(userId));
-      if (cancelled) return;
-      patch({ summary });
+        // Phase 2: Get shared charts (admin + manager)
+        if (isAdmin || isManager) {
+          const results = await Promise.allSettled([
+            fetchAuditStatus(userId),
+            fetchAvgQuizScores(userId, true),
+            fetchPoliciesWithQuiz(userId),
+            fetchComplianceTrend(userId, "month"),
+          ]);
+          if (cancelled) return;
+          const audit =
+            results[0]?.status === "fulfilled" ? results[0]?.value : null;
+          const avgQuiz =
+            results[1]?.status === "fulfilled" ? results[1]?.value : null;
+          const withQuiz =
+            results[2]?.status === "fulfilled" ? results[2]?.value : null;
+          const trend =
+            results[3]?.status === "fulfilled" ? results[3]?.value : null;
 
-      // Phase 2 — shared charts (ADMIN + MANAGER)
-      if (isAdmin || isManager) {
-        const [audit, avgQuiz, withQuiz, trend] = await Promise.all([
-          safe("audit", () => fetchAuditStatus(userId)),
-          safe("avgQuiz", () => fetchAvgQuizScores(userId, true)),
-          safe("withQuiz", () => fetchPoliciesWithQuiz(userId)),
-          safe("trend", () => fetchComplianceTrend(userId, "month")),
-        ]);
-        if (cancelled) return;
-        patch({
-          auditChart: audit,
-          avgQuizScores: avgQuiz,
-          policiesWithQuiz: withQuiz,
-          complianceTrend: trend,
-        });
+          if (results[0]?.status === "rejected")
+            console.error("Audit status failed:", results[0]?.reason);
+          if (results[1]?.status === "rejected")
+            console.error("Quiz scores failed:", results[1]?.reason);
+          if (results[2]?.status === "rejected")
+            console.error("Policies with quiz failed:", results[2]?.reason);
+          if (results[3]?.status === "rejected")
+            console.error("Compliance trend failed:", results[3]?.reason);
+
+          setState((prev) => ({
+            ...prev,
+            auditChart: audit,
+            avgQuizScores: avgQuiz,
+            policiesWithQuiz: withQuiz,
+            complianceTrend: trend,
+          }));
+        }
+
+        // Phase 3a: Get admin-only charts
+        if (isAdmin) {
+          const results = await Promise.allSettled([
+            fetchMostAssigned(10, false),
+            fetchPoliciesByCategory(userId),
+            fetchDeptCompliance(),
+            fetchMonthlyRollout(),
+            fetchChecklistBubble(),
+          ]);
+          if (cancelled) return;
+          const most =
+            results[0]?.status === "fulfilled" ? results[0]?.value : null;
+          const byCat =
+            results[1]?.status === "fulfilled" ? results[1]?.value : null;
+          const dept =
+            results[2]?.status === "fulfilled" ? results[2]?.value : null;
+          const rollout =
+            results[3]?.status === "fulfilled" ? results[3]?.value : null;
+          const bubble =
+            results[4]?.status === "fulfilled" ? results[4]?.value : null;
+
+          if (results[0]?.status === "rejected")
+            console.error("Most assigned failed:", results[0]?.reason);
+          if (results[1]?.status === "rejected")
+            console.error("Policies by category failed:", results[1]?.reason);
+          if (results[2]?.status === "rejected")
+            console.error("Dept compliance failed:", results[2]?.reason);
+          if (results[3]?.status === "rejected")
+            console.error("Monthly rollout failed:", results[3]?.reason);
+          if (results[4]?.status === "rejected")
+            console.error("Checklist bubble failed:", results[4]?.reason);
+
+          setState((prev) => ({
+            ...prev,
+            mostAssigned: most ?? [],
+            policiesByCategory: byCat,
+            deptCompliance: dept ?? [],
+            monthlyRollout: rollout ?? [],
+            checklistBubble: bubble ?? [],
+          }));
+        }
+
+        // Phase 3b: Get manager-only charts
+        if (isManager) {
+          const results = await Promise.allSettled([
+            fetchTeamHistogram(userId, 10),
+            fetchTeamPending(userId, 10),
+            fetchTeamTopPerformers(userId, 10, 1),
+          ]);
+          if (cancelled) return;
+          const hist =
+            results[0]?.status === "fulfilled" ? results[0]?.value : null;
+          const pending =
+            results[1]?.status === "fulfilled" ? results[1]?.value : null;
+          const topPerf =
+            results[2]?.status === "fulfilled" ? results[2]?.value : null;
+
+          if (results[0]?.status === "rejected")
+            console.error("Team histogram failed:", results[0]?.reason);
+          if (results[1]?.status === "rejected")
+            console.error("Team pending failed:", results[1]?.reason);
+          if (results[2]?.status === "rejected")
+            console.error("Top performers failed:", results[2]?.reason);
+
+          setState((prev) => ({
+            ...prev,
+            teamHistogram: hist,
+            teamPending: pending ?? [],
+            teamTopPerformers: topPerf ?? [],
+          }));
+        }
+
+        // Done loading
+        if (!cancelled) {
+          setState((prev) => ({ ...prev, loading: false }));
+        }
+      } catch (error) {
+        console.error("Analytics data loading error:", error);
+        if (!cancelled) {
+          setState((prev) => ({ ...prev, loading: false }));
+        }
       }
+    };
 
-      // Phase 3a — admin-only charts
-      if (isAdmin) {
-        const [most, byCat, dept, rollout, bubble] = await Promise.all([
-          safe("mostAssigned", () => fetchMostAssigned(10, false)),
-          safe("byCategory", () => fetchPoliciesByCategory(userId)),
-          safe("deptCompliance", () => fetchDeptCompliance()),
-          safe("rollout", () => fetchMonthlyRollout()),
-          safe("bubble", () => fetchChecklistBubble()),
-        ]);
-        if (cancelled) return;
-        patch({
-          mostAssigned: most ?? [],
-          policiesByCategory: byCat,
-          deptCompliance: dept ?? [],
-          monthlyRollout: rollout ?? [],
-          checklistBubble: bubble ?? [],
-        });
-      }
+    loadData();
 
-      // Phase 3b — manager-only charts
-      if (isManager) {
-        const [hist, pending, topPerf] = await Promise.all([
-          safe("histogram", () => fetchTeamHistogram(userId, 10)),
-          safe("pending", () => fetchTeamPending(userId, 10)),
-          safe("topPerf", () => fetchTeamTopPerformers(userId, 10, 1)),
-        ]);
-        if (cancelled) return;
-        patch({
-          teamHistogram: hist,
-          teamPending: pending ?? [],
-          teamTopPerformers: topPerf ?? [],
-        });
-      }
-
-      patch({ loading: false });
-    })();
-
+    // Cleanup: stop updates if component unmounts
     return () => {
       cancelled = true;
     };
-  }, [userId, role, safe, patch]);
+  }, [userId, role]);
 
-  // ─── Filter-driven Reload Helpers ─────────────────────────
-  // Each reloads a single chart when the user changes a filter.
-  // The inline loading overlay keeps prior data visible until the
-  // new response arrives — better UX than replacing with a skeleton.
+  // Reload compliance trend
+  const reloadTrend = async (mode: string, year?: number) => {
+    setState((prev) => ({
+      ...prev,
+      reloading: { ...prev?.reloading, trend: true },
+    }));
+    try {
+      const data = await fetchComplianceTrend(userId, mode, year);
+      setState((prev) => ({
+        ...prev,
+        complianceTrend: data,
+        reloading: { ...prev?.reloading, trend: false },
+      }));
+    } catch (error) {
+      console.error("Failed to reload trend:", error);
+      setState((prev) => ({
+        ...prev,
+        reloading: { ...prev?.reloading, trend: false },
+      }));
+    }
+  };
 
-  const reloadTrend = useCallback(
-    async (mode: string, year?: number) => {
-      setReloading("trend", true);
-      const d = await safe("trend", () =>
-        fetchComplianceTrend(userId, mode, year),
+  // Reload quiz scores
+  const reloadQuizScores = async (excludeZero: boolean) => {
+    setState((prev) => ({
+      ...prev,
+      reloading: { ...prev?.reloading, avgQuiz: true },
+    }));
+    try {
+      const data = await fetchAvgQuizScores(userId, excludeZero);
+      setState((prev) => ({
+        ...prev,
+        avgQuizScores: data,
+        reloading: { ...prev?.reloading, avgQuiz: false },
+      }));
+    } catch (error) {
+      console.error("Failed to reload quiz:", error);
+      setState((prev) => ({
+        ...prev,
+        reloading: { ...prev?.reloading, avgQuiz: false },
+      }));
+    }
+  };
+
+  // Reload most assigned
+  const reloadMostAssigned = async (top: number, includeInactive: boolean) => {
+    setState((prev) => ({
+      ...prev,
+      reloading: { ...prev?.reloading, mostAssigned: true },
+    }));
+    try {
+      const data = await fetchMostAssigned(top, includeInactive);
+      setState((prev) => ({
+        ...prev,
+        mostAssigned: data ?? [],
+        reloading: { ...prev?.reloading, mostAssigned: false },
+      }));
+    } catch (error) {
+      console.error("Failed to reload assigned:", error);
+      setState((prev) => ({
+        ...prev,
+        reloading: { ...prev?.reloading, mostAssigned: false },
+      }));
+    }
+  };
+
+  // Reload rollout
+  const reloadRollout = async (start?: Date, end?: Date) => {
+    setState((prev) => ({
+      ...prev,
+      reloading: { ...prev?.reloading, rollout: true },
+    }));
+    try {
+      const data = await fetchMonthlyRollout(start, end);
+      setState((prev) => ({
+        ...prev,
+        monthlyRollout: data ?? [],
+        reloading: { ...prev?.reloading, rollout: false },
+      }));
+    } catch (error) {
+      console.error("Failed to reload rollout:", error);
+      setState((prev) => ({
+        ...prev,
+        reloading: { ...prev?.reloading, rollout: false },
+      }));
+    }
+  };
+
+  // Reload histogram
+  const reloadHistogram = async (binSize: number, policyId?: number) => {
+    setState((prev) => ({
+      ...prev,
+      reloading: { ...prev?.reloading, histogram: true },
+    }));
+    try {
+      const data = await fetchTeamHistogram(userId, binSize, policyId);
+      setState((prev) => ({
+        ...prev,
+        teamHistogram: data,
+        reloading: { ...prev?.reloading, histogram: false },
+      }));
+    } catch (error) {
+      console.error("Failed to reload histogram:", error);
+      setState((prev) => ({
+        ...prev,
+        reloading: { ...prev?.reloading, histogram: false },
+      }));
+    }
+  };
+
+  // Reload top performers
+  const reloadTopPerformers = async (
+    top: number,
+    minAttempts: number,
+    policyId?: number,
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      reloading: { ...prev?.reloading, topPerf: true },
+    }));
+    try {
+      const data = await fetchTeamTopPerformers(
+        userId,
+        top,
+        minAttempts,
+        policyId,
       );
-      patch({ complianceTrend: d });
-      setReloading("trend", false);
-    },
-    [userId, safe, patch, setReloading],
-  );
-
-  const reloadQuizScores = useCallback(
-    async (excludeZero: boolean) => {
-      setReloading("avgQuiz", true);
-      const d = await safe("avgQuiz", () =>
-        fetchAvgQuizScores(userId, excludeZero),
-      );
-      patch({ avgQuizScores: d });
-      setReloading("avgQuiz", false);
-    },
-    [userId, safe, patch, setReloading],
-  );
-
-  const reloadMostAssigned = useCallback(
-    async (top: number, includeInactive: boolean) => {
-      setReloading("mostAssigned", true);
-      const d = await safe("mostAssigned", () =>
-        fetchMostAssigned(top, includeInactive),
-      );
-      patch({ mostAssigned: d ?? [] });
-      setReloading("mostAssigned", false);
-    },
-    [safe, patch, setReloading],
-  );
-
-  const reloadRollout = useCallback(
-    async (start?: Date, end?: Date) => {
-      setReloading("rollout", true);
-      const d = await safe("rollout", () => fetchMonthlyRollout(start, end));
-      patch({ monthlyRollout: d ?? [] });
-      setReloading("rollout", false);
-    },
-    [safe, patch, setReloading],
-  );
-
-  const reloadHistogram = useCallback(
-    async (binSize: number, policyId?: number) => {
-      setReloading("histogram", true);
-      const d = await safe("histogram", () =>
-        fetchTeamHistogram(userId, binSize, policyId),
-      );
-      patch({ teamHistogram: d });
-      setReloading("histogram", false);
-    },
-    [userId, safe, patch, setReloading],
-  );
-
-  const reloadTopPerformers = useCallback(
-    async (top: number, minAttempts: number, policyId?: number) => {
-      setReloading("topPerf", true);
-      const d = await safe("topPerf", () =>
-        fetchTeamTopPerformers(userId, top, minAttempts, policyId),
-      );
-      patch({ teamTopPerformers: d ?? [] });
-      setReloading("topPerf", false);
-    },
-    [userId, safe, patch, setReloading],
-  );
+      setState((prev) => ({
+        ...prev,
+        teamTopPerformers: data ?? [],
+        reloading: { ...prev?.reloading, topPerf: false },
+      }));
+    } catch (error) {
+      console.error("Failed to reload top performers:", error);
+      setState((prev) => ({
+        ...prev,
+        reloading: { ...prev?.reloading, topPerf: false },
+      }));
+    }
+  };
 
   return {
     ...state,

@@ -91,313 +91,320 @@ export default function SharedCharts({
   return (
     <>
       {/* ── Row 1: Donut + Pie (side by side) ──────────────────── */}
-      <div className="chart-grid chart-grid--two" style={{ gap: "0.7rem" }}>
-        {/* Audit Task Status — Donut */}
-        {errors["audit"] ? (
-          <ChartError title="Audit Tasks" message={errors["audit"]} />
-        ) : auditChart?.slices?.length ? (
-          <ChartCard
-            title="Audit Tasks"
-            subtitle={`${formatNumber(auditChart?.total)} total`}
-          >
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={(auditChart.slices ?? []).map((s) => ({
-                    name: STATUS_LABELS[s?.status] ?? s?.status ?? "Unknown",
-                    value: s?.count ?? 0,
-                  }))}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={90}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {(auditChart.slices ?? []).map((s, i) => (
-                    <Cell
-                      key={i}
-                      fill={STATUS_COLORS[s?.status] ?? "#6c757d"}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(
-                    v: number | undefined,
-                    name: string | undefined,
-                  ) => [`${formatNumber(v)} tasks`, name ?? ""]}
-                />
-                <Legend
-                  verticalAlign="top"
-                  align="center"
-                  wrapperStyle={{ marginBottom: "-10px", marginTop: "5px" }}
-                  iconSize={18}
-                  formatter={(value: string) => (
-                    <span
-                      style={{
-                        fontSize: "0.92rem",
-                        color: "#0ea5e9",
-                        fontWeight: 600,
-                        letterSpacing: "0.01em",
-                      }}
-                    >
-                      {value}
-                    </span>
-                  )}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        ) : (
-          <ChartEmpty
-            title="Audit Tasks"
-            hint="Create audit tasks to see their status here."
-          />
-        )}
+      <div className="row g-3">
+        <div className="col-lg-6">
+          {/* Audit Task Status — Donut */}
+          {errors["audit"] ? (
+            <ChartError title="Audit Tasks" message={errors["audit"]} />
+          ) : auditChart?.slices?.length ? (
+            <ChartCard
+              title="Audit Tasks"
+              subtitle={`${formatNumber(auditChart?.total)} total`}
+            >
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie
+                    data={(auditChart.slices ?? []).map((s) => ({
+                      name: STATUS_LABELS[s?.status] ?? s?.status ?? "Unknown",
+                      value: s?.count ?? 0,
+                    }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={90}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {(auditChart.slices ?? []).map((s, i) => (
+                      <Cell
+                        key={i}
+                        fill={STATUS_COLORS[s?.status] ?? "#6c757d"}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(
+                      v: number | undefined,
+                      name: string | undefined,
+                    ) => [`${formatNumber(v)} tasks`, name ?? ""]}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    formatter={(value: string) => (
+                      <span
+                        style={{
+                          fontSize: "0.82rem",
+                          color: "var(--bs-body-color)",
+                        }}
+                      >
+                        {value}
+                      </span>
+                    )}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          ) : (
+            <ChartEmpty
+              title="Audit Tasks"
+              hint="Create audit tasks to see their status here."
+            />
+          )}
+        </div>
 
-        {/* Quiz Coverage — Pie */}
-        {errors["withQuiz"] ? (
-          <ChartError title="Quiz Availability" message={errors["withQuiz"]} />
-        ) : policiesWithQuiz?.slices?.length ? (
-          <ChartCard
-            title="Quiz Availability"
-            subtitle={`${formatNumber(policiesWithQuiz?.total)} policies`}
-          >
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={(policiesWithQuiz.slices ?? []).map((s) => ({
-                    name: s?.label ?? "Unknown",
-                    value: s?.count ?? 0,
-                  }))}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={90}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {QUIZ_COLORS.map((c, i) => (
-                    <Cell key={i} fill={c} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(
-                    v: number | undefined,
-                    name: string | undefined,
-                  ) => [`${formatNumber(v)} policies`, name ?? ""]}
-                />
-                <Legend
-                  verticalAlign="bottom"
-                  formatter={(value: string) => (
-                    <span
-                      style={{
-                        fontSize: "0.82rem",
-                        color: "var(--bs-body-color)",
-                      }}
-                    >
-                      {value}
-                    </span>
-                  )}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        ) : (
-          <ChartEmpty
-            title="Quiz Availability"
-            hint="Attach quizzes to policies to see availability."
-          />
-        )}
+        <div className="col-lg-6">
+          {/* Quiz Coverage — Pie */}
+          {errors["withQuiz"] ? (
+            <ChartError
+              title="Quiz Availability"
+              message={errors["withQuiz"]}
+            />
+          ) : policiesWithQuiz?.slices?.length ? (
+            <ChartCard
+              title="Quiz Availability"
+              subtitle={`${formatNumber(policiesWithQuiz?.total)} policies`}
+            >
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie
+                    data={(policiesWithQuiz.slices ?? []).map((s) => ({
+                      name: s?.label ?? "Unknown",
+                      value: s?.count ?? 0,
+                    }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={90}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {QUIZ_COLORS.map((c, i) => (
+                      <Cell key={i} fill={c} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(
+                      v: number | undefined,
+                      name: string | undefined,
+                    ) => [`${formatNumber(v)} policies`, name ?? ""]}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    formatter={(value: string) => (
+                      <span
+                        style={{
+                          fontSize: "0.82rem",
+                          color: "var(--bs-body-color)",
+                        }}
+                      >
+                        {value}
+                      </span>
+                    )}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          ) : (
+            <ChartEmpty
+              title="Quiz Availability"
+              hint="Attach quizzes to policies to see availability."
+            />
+          )}
+        </div>
       </div>
 
       {/* ── Row 2: Average Quiz Scores (full width) ────────────── */}
-      <div className="chart-grid chart-grid--one">
-        {errors["avgQuiz"] ? (
-          <ChartError title="Average Quiz Scores" message={errors["avgQuiz"]} />
-        ) : avgQuizScores?.data?.length ? (
-          <ChartCard
-            title="Average Quiz Scores"
-            subtitle="You see data for your team only."
-            description="Average score employees achieved on each policy's quiz — higher is better"
-            isLoading={reloading["avgQuiz"]}
-            controls={
-              <label className="d-flex align-items-center gap-2 mb-0">
-                <input
-                  type="checkbox"
-                  className="form-check-input"
-                  checked={excludeZero}
-                  onChange={(e) => onExcludeZero(e.target.checked)}
-                  disabled={reloading["avgQuiz"]}
-                />
-                <span className="small text-muted text-nowrap">
-                  Exclude zero scores
-                </span>
-              </label>
-            }
-          >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={avgQuizScores.data}
-                margin={{ left: 0, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
-                <XAxis
-                  dataKey="policyTitle"
-                  angle={-20}
-                  textAnchor="end"
-                  height={80}
-                  tick={{ fontSize: 11 }}
-                  interval={0}
-                  tickFormatter={(v: string) => truncate(v)}
-                  label={{
-                    value: "Policy",
-                    position: "insideBottom",
-                    offset: 0,
-                    fontSize: 11,
-                    fill: "#6c757d",
-                  }}
-                />
-                <YAxis
-                  domain={[0, 100]}
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(v: number) => `${v}`}
-                  label={{
-                    value: "Avg Score",
-                    angle: -90,
-                    position: "insideLeft",
-                    offset: 20,
-                    fontSize: 12,
-                    fill: "#0ea5e9",
-                    fontWeight: 600,
-                  }}
-                />
-                <Tooltip
-                  formatter={(v: number | undefined) => [
-                    `${(v ?? 0).toFixed(1)}`,
-                    "Average Score",
-                  ]}
-                  labelFormatter={(label) => `Policy: ${label ?? "—"}`}
-                />
-                <Bar
-                  dataKey="averageScore"
-                  fill="#0ea5e9"
-                  radius={[4, 4, 0, 0]}
-                  name="Average Score"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        ) : (
-          <ChartEmpty
-            title="Average Quiz Scores"
-            hint="Employees need to complete quizzes for scores to appear."
-          />
-        )}
+      <div className="row g-3 mt-3">
+        <div className="col-12">
+          {errors["avgQuiz"] ? (
+            <ChartError
+              title="Average Quiz Scores"
+              message={errors["avgQuiz"]}
+            />
+          ) : avgQuizScores?.data?.length ? (
+            <ChartCard
+              title="Average Quiz Scores"
+              description="Average score employees achieved on each policy's quiz — higher is better"
+              isLoading={reloading["avgQuiz"]}
+              controls={
+                <label className="d-flex align-items-center gap-2 mb-0">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={excludeZero}
+                    onChange={(e) => onExcludeZero(e.target.checked)}
+                    disabled={reloading["avgQuiz"]}
+                  />
+                  <span className="small text-muted text-nowrap">
+                    Exclude zero scores
+                  </span>
+                </label>
+              }
+            >
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={avgQuizScores.data}
+                  margin={{ left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
+                  <XAxis
+                    dataKey="policyTitle"
+                    angle={-20}
+                    textAnchor="end"
+                    height={80}
+                    tick={{ fontSize: 11 }}
+                    interval={0}
+                    tickFormatter={(v: string) => truncate(v)}
+                    label={{
+                      value: "Policy",
+                      position: "insideBottom",
+                      offset: 0,
+                      fontSize: 11,
+                      fill: "#6c757d",
+                    }}
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    tick={{ fontSize: 11 }}
+                    tickFormatter={(v: number) => `${v}%`}
+                    label={{
+                      value: "Avg Score (%)",
+                      angle: -90,
+                      position: "insideLeft",
+                      offset: 15,
+                      fontSize: 11,
+                      fill: "#6c757d",
+                    }}
+                  />
+                  <Tooltip
+                    formatter={(v: number | undefined) => [
+                      `${(v ?? 0).toFixed(1)}%`,
+                      "Average Score",
+                    ]}
+                    labelFormatter={(label) => `Policy: ${label ?? "—"}`}
+                  />
+                  <Bar
+                    dataKey="averageScore"
+                    fill="#0ea5e9"
+                    radius={[4, 4, 0, 0]}
+                    name="Average Score"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          ) : (
+            <ChartEmpty
+              title="Average Quiz Scores"
+              hint="Employees need to complete quizzes for scores to appear."
+            />
+          )}
+        </div>
       </div>
 
       {/* ── Row 3: Compliance Trend (full width) ───────────────── */}
-      <div className="chart-grid chart-grid--one">
-        {errors["trend"] ? (
-          <ChartError title="Compliance Trend" message={errors["trend"]} />
-        ) : complianceTrend?.buckets?.length ? (
-          <ChartCard
-            title="Compliance Trend"
-            subtitle={`${formatNumber(complianceTrend?.total)} total accepted`}
-            description="How many policy acceptances happened over time — helps spot trends"
-            isLoading={reloading["trend"]}
-            controls={
-              <div className="d-flex align-items-center gap-2">
-                <div className="btn-group btn-group-sm">
-                  <button
-                    type="button"
-                    className={`btn ${trendMode === "month" ? "btn-primary" : "btn-outline-primary"}`}
-                    onClick={() => onTrendMode("month")}
-                    disabled={reloading["trend"]}
-                  >
-                    Weekly
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn ${trendMode === "year" ? "btn-primary" : "btn-outline-primary"}`}
-                    onClick={() => onTrendMode("year")}
-                    disabled={reloading["trend"]}
-                  >
-                    Monthly
-                  </button>
+      <div className="row g-3 mt-3">
+        <div className="col-12">
+          {errors["trend"] ? (
+            <ChartError title="Compliance Trend" message={errors["trend"]} />
+          ) : complianceTrend?.buckets?.length ? (
+            <ChartCard
+              title="Compliance Trend"
+              subtitle={`${formatNumber(complianceTrend?.total)} total accepted`}
+              description="How many policy acceptances happened over time — helps spot trends"
+              isLoading={reloading["trend"]}
+              controls={
+                <div className="d-flex align-items-center gap-2">
+                  <div className="btn-group btn-group-sm">
+                    <button
+                      type="button"
+                      className={`btn ${trendMode === "month" ? "btn-primary" : "btn-outline-primary"}`}
+                      onClick={() => onTrendMode("month")}
+                      disabled={reloading["trend"]}
+                    >
+                      Weekly
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn ${trendMode === "year" ? "btn-primary" : "btn-outline-primary"}`}
+                      onClick={() => onTrendMode("year")}
+                      disabled={reloading["trend"]}
+                    >
+                      Monthly
+                    </button>
+                  </div>
+                  {trendMode === "year" && (
+                    <select
+                      className="form-select form-select-sm"
+                      style={{ width: "auto" }}
+                      value={trendYear}
+                      onChange={(e) => onTrendYear(Number(e.target.value))}
+                      disabled={reloading["trend"]}
+                    >
+                      {yearOptions().map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
-                {trendMode === "year" && (
-                  <select
-                    className="form-select form-select-sm"
-                    style={{ width: "auto" }}
-                    value={trendYear}
-                    onChange={(e) => onTrendYear(Number(e.target.value))}
-                    disabled={reloading["trend"]}
-                  >
-                    {yearOptions().map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            }
-          >
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart
-                data={complianceTrend.buckets}
-                margin={{ left: 0, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 12 }}
-                  label={{
-                    value: "Period",
-                    position: "insideBottom",
-                    offset: -10,
-                    fontSize: 11,
-                    fill: "#6c757d",
-                  }}
-                />
-                <YAxis
-                  allowDecimals={false}
-                  tick={{ fontSize: 11 }}
-                  tickFormatter={(v: number) => formatNumber(v)}
-                  label={{
-                    value: "Accepted",
-                    angle: -90,
-                    position: "insideLeft",
-                    offset: 10,
-                    fontSize: 11,
-                    fill: "#6c757d",
-                  }}
-                />
-                <Tooltip
-                  formatter={(v: number | undefined) => [
-                    formatNumber(v),
-                    "Policies Accepted",
-                  ]}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#4f46e5"
-                  strokeWidth={2}
-                  dot={{ r: 4, fill: "#4f46e5" }}
-                  activeDot={{ r: 6 }}
-                  name="Policies Accepted"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        ) : (
-          <ChartEmpty
-            title="Compliance Trend"
-            hint="Policy acceptances will be charted over time."
-          />
-        )}
+              }
+            >
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={complianceTrend.buckets}
+                  margin={{ left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 12 }}
+                    label={{
+                      value: "Period",
+                      position: "insideBottom",
+                      offset: -10,
+                      fontSize: 11,
+                      fill: "#6c757d",
+                    }}
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    tick={{ fontSize: 11 }}
+                    tickFormatter={(v: number) => formatNumber(v)}
+                    label={{
+                      value: "Accepted",
+                      angle: -90,
+                      position: "insideLeft",
+                      offset: 10,
+                      fontSize: 11,
+                      fill: "#6c757d",
+                    }}
+                  />
+                  <Tooltip
+                    formatter={(v: number | undefined) => [
+                      formatNumber(v),
+                      "Policies Accepted",
+                    ]}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#4f46e5"
+                    strokeWidth={2}
+                    dot={{ r: 4, fill: "#4f46e5" }}
+                    activeDot={{ r: 6 }}
+                    name="Policies Accepted"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          ) : (
+            <ChartEmpty
+              title="Compliance Trend"
+              hint="Policy acceptances will be charted over time."
+            />
+          )}
+        </div>
       </div>
     </>
   );

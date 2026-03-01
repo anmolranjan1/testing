@@ -90,200 +90,206 @@ export default function ManagerCharts({
   return (
     <>
       {/* ── Row 1: Histogram + Top Performers ──────────────────── */}
-      <div className="chart-grid chart-grid--two">
-        <div
-          className="dashboard__subtitle dashboard__subtitle--muted"
-          style={{ marginBottom: "0.5rem" }}
-        >
-          You see data for your team only.
+      <div className="row g-3">
+        <div className="col-12">
+          <div className="small text-muted mb-2">
+            You see data for your team only.
+          </div>
         </div>
-        {/* Quiz Score Distribution */}
-        {errors["histogram"] ? (
-          <ChartError
-            title="Quiz Score Distribution"
-            message={errors["histogram"]}
-          />
-        ) : teamHistogram?.bins?.length ? (
-          <ChartCard
-            title="Quiz Score Distribution"
-            subtitle="You see data for your team only."
-            description="Shows how your team's quiz scores are spread — most bars should lean right"
-            isLoading={reloading["histogram"]}
-            controls={renderPolicySelect(
-              histPolicy,
-              onHistPolicyChange,
-              reloading["histogram"],
-            )}
-          >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={(teamHistogram.bins ?? []).map((b) => ({
-                  range: `${b?.lowerBound ?? 0}–${b?.upperBound ?? 0}%`,
-                  count: b?.count ?? 0,
-                }))}
-                margin={{ bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
-                <XAxis
-                  dataKey="range"
-                  tick={{ fontSize: 11 }}
-                  label={{
-                    value: "Score Range",
-                    position: "insideBottom",
-                    offset: -10,
-                    fontSize: 11,
-                    fill: "#6c757d",
-                  }}
-                />
-                <YAxis
-                  allowDecimals={false}
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(v: number) => formatNumber(v)}
-                  label={{
-                    value: "Submissions",
-                    angle: -90,
-                    position: "insideLeft",
-                    offset: 20,
-                    fontSize: 12,
-                    fill: "#6610f2",
-                    fontWeight: 600,
-                  }}
-                />
-                <Tooltip
-                  formatter={(v: number | undefined) => [
-                    `${formatNumber(v)} submissions`,
-                    "Count",
-                  ]}
-                  labelFormatter={(label) => `Score: ${label}`}
-                />
-                <Bar
-                  dataKey="count"
-                  fill="#6610f2"
-                  radius={[4, 4, 0, 0]}
-                  name="Submissions"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        ) : (
-          <ChartEmpty
-            title="Quiz Score Distribution"
-            hint="Team members need to take quizzes for this histogram."
-          />
-        )}
+        <div className="col-lg-6">
+          {errors["histogram"] ? (
+            <ChartError
+              title="Quiz Score Distribution"
+              message={errors["histogram"]}
+            />
+          ) : teamHistogram?.bins?.length ? (
+            <ChartCard
+              title="Quiz Score Distribution"
+              subtitle={`${formatNumber(teamHistogram?.totalAssignments)} submissions`}
+              description="Shows how your team's quiz scores are spread — most bars should lean right"
+              isLoading={reloading["histogram"]}
+              controls={renderPolicySelect(
+                histPolicy,
+                onHistPolicyChange,
+                reloading["histogram"],
+              )}
+            >
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={(teamHistogram.bins ?? []).map((b) => ({
+                    range: `${b?.lowerBound ?? 0}–${b?.upperBound ?? 0}%`,
+                    count: b?.count ?? 0,
+                  }))}
+                  margin={{ bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
+                  <XAxis
+                    dataKey="range"
+                    tick={{ fontSize: 11 }}
+                    label={{
+                      value: "Score Range",
+                      position: "insideBottom",
+                      offset: -10,
+                      fontSize: 11,
+                      fill: "#6c757d",
+                    }}
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    tick={{ fontSize: 11 }}
+                    tickFormatter={(v: number) => formatNumber(v)}
+                  />
+                  <Tooltip
+                    formatter={(v: number | undefined) => [
+                      `${formatNumber(v)} submissions`,
+                      "Count",
+                    ]}
+                    labelFormatter={(label) => `Score: ${label}`}
+                  />
+                  <Bar
+                    dataKey="count"
+                    fill="#6610f2"
+                    radius={[4, 4, 0, 0]}
+                    name="Submissions"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          ) : (
+            <ChartEmpty
+              title="Quiz Score Distribution"
+              hint="Team members need to take quizzes for this histogram."
+            />
+          )}
+        </div>
 
         {/* Top Performers — Table */}
-        {errors["topPerf"] ? (
-          <ChartError title="Top Performers" message={errors["topPerf"]} />
-        ) : teamTopPerformers?.length ? (
-          <ChartCard
-            title="Top Performers"
-            description="Shows each team member's average quiz score."
-            isLoading={reloading["topPerf"]}
-            controls={renderPolicySelect(
-              perfPolicy,
-              onPerfPolicyChange,
-              reloading["topPerf"],
-            )}
-          >
-            <div style={{ maxHeight: 320, overflowY: "auto" }}>
-              <table className="perf-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Employee</th>
-                    <th>Avg Score</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(teamTopPerformers ?? []).map((p, i) => (
-                    <tr key={p?.userId ?? i}>
-                      <td className="perf-table__rank">{i + 1}</td>
-                      <td>
-                        <div className="fw-medium">{p?.name ?? "—"}</div>
-                        <div
-                          className="text-muted"
-                          style={{ fontSize: "0.75rem" }}
-                        >
-                          {p?.email ?? ""}
-                        </div>
-                      </td>
-                      <td className="fw-semibold">
-                        {(p?.averageScore ?? 0).toFixed(1)}
-                      </td>
+        <div className="col-lg-6">
+          {errors["topPerf"] ? (
+            <ChartError title="Top Performers" message={errors["topPerf"]} />
+          ) : teamTopPerformers?.length ? (
+            <ChartCard
+              title="Top Performers"
+              description="Shows each team member's average quiz score. Progress bar = score as percentage."
+              isLoading={reloading["topPerf"]}
+              controls={renderPolicySelect(
+                perfPolicy,
+                onPerfPolicyChange,
+                reloading["topPerf"],
+              )}
+            >
+              <div style={{ maxHeight: 320, overflowY: "auto" }}>
+                <table className="perf-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Employee</th>
+                      <th>Avg Score</th>
+                      <th>Progress</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </ChartCard>
-        ) : (
-          <ChartEmpty
-            title="Top Performers"
-            hint="Encourage your team to take quizzes to see top scorers."
-          />
-        )}
+                  </thead>
+                  <tbody>
+                    {(teamTopPerformers ?? []).map((p, i) => (
+                      <tr key={p?.userId ?? i}>
+                        <td className="perf-table__rank">{i + 1}</td>
+                        <td>
+                          <div className="fw-medium">{p?.name ?? "—"}</div>
+                          <div
+                            className="text-muted"
+                            style={{ fontSize: "0.75rem" }}
+                          >
+                            {p?.email ?? ""}
+                          </div>
+                        </td>
+                        <td className="fw-semibold">
+                          {(p?.averageScore ?? 0).toFixed(1)}%
+                        </td>
+                        <td>
+                          <div className="perf-table__score-bar">
+                            <div
+                              className="perf-table__score-fill"
+                              style={{
+                                width: `${Math.min(p?.averageScore ?? 0, 100)}%`,
+                              }}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </ChartCard>
+          ) : (
+            <ChartEmpty
+              title="Top Performers"
+              hint="Encourage your team to take quizzes to see top scorers."
+            />
+          )}
+        </div>
       </div>
 
       {/* ── Row 2: Pending Policies (full width) ───────────────── */}
-      <div className="chart-grid chart-grid--one">
-        {errors["pending"] ? (
-          <ChartError
-            title="Pending Policy Acceptances"
-            message={errors["pending"]}
-          />
-        ) : teamPending?.length ? (
-          <ChartCard
-            title="Pending Policy Acceptances"
-            description="Policies your team members haven't accepted yet — longer bars need attention"
-          >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={teamPending}
-                layout="vertical"
-                margin={{ left: 0, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
-                <XAxis
-                  type="number"
-                  tick={{ fontSize: 11 }}
-                  allowDecimals={false}
-                  label={{
-                    value: "Employees Pending",
-                    position: "insideBottom",
-                    offset: -2,
-                    fontSize: 11,
-                    fill: "#6c757d",
-                  }}
-                />
-                <YAxis
-                  dataKey="policyTitle"
-                  type="category"
-                  width={140}
-                  tick={{ fontSize: 11 }}
-                />
-                <Tooltip
-                  formatter={(v: number | undefined) => [
-                    `${formatNumber(v)} employees haven't accepted yet`,
-                    "Pending",
-                  ]}
-                  labelFormatter={(label) => `${label ?? "—"}`}
-                />
-                <Bar
-                  dataKey="pendingCount"
-                  fill="#ffc107"
-                  radius={[0, 4, 4, 0]}
-                  name="Pending"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        ) : (
-          <ChartEmpty
-            title="Pending Policy Acceptances"
-            hint="No pending acceptances found — your team is up to date!"
-          />
-        )}
+      <div className="row g-3 mt-3">
+        <div className="col-12">
+          {errors["pending"] ? (
+            <ChartError
+              title="Pending Policy Acceptances"
+              message={errors["pending"]}
+            />
+          ) : teamPending?.length ? (
+            <ChartCard
+              title="Pending Policy Acceptances"
+              description="Policies your team members haven't accepted yet — longer bars need attention"
+            >
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={teamPending}
+                  layout="vertical"
+                  margin={{ left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
+                  <XAxis
+                    type="number"
+                    tick={{ fontSize: 11 }}
+                    allowDecimals={false}
+                    label={{
+                      value: "Employees Pending",
+                      position: "insideBottom",
+                      offset: -2,
+                      fontSize: 11,
+                      fill: "#6c757d",
+                    }}
+                  />
+                  <YAxis
+                    dataKey="policyTitle"
+                    type="category"
+                    width={140}
+                    tick={{ fontSize: 11 }}
+                  />
+                  <Tooltip
+                    formatter={(v: number | undefined) => [
+                      `${formatNumber(v)} employees haven't accepted yet`,
+                      "Pending",
+                    ]}
+                    labelFormatter={(label) => `${label ?? "—"}`}
+                  />
+                  <Bar
+                    dataKey="pendingCount"
+                    fill="#ffc107"
+                    radius={[0, 4, 4, 0]}
+                    name="Pending"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          ) : (
+            <ChartEmpty
+              title="Pending Policy Acceptances"
+              hint="No pending acceptances found — your team is up to date!"
+            />
+          )}
+        </div>
       </div>
     </>
   );
